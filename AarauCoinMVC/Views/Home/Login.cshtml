@@ -1,0 +1,32 @@
+﻿@{
+    ViewData["Title"] = "Login";
+}
+
+<h1>Login</h1>
+
+<form method="post" asp-controller="Home" asp-action="LoginAction">
+    <div class="row">
+        <div class="col-md-6">
+
+            <div class="col-md-8 topmargin">
+                <label for="username" class="form-label">Username: </label>
+                <input type="text" class="form-control" id="username">
+            </div>
+
+            <div class="col-md-8 topmargin">
+                <label for="password" class="form-label">Password: </label>
+                <input type="password" class="form-control" id="password">
+            </div>
+
+            <div class="form-check col-md-8 topmargin">
+                <input type="checkbox" class="form-check-input" id="check" />
+                <label for="check" class="form-check-label">Remember me</label>
+
+            </div><br>
+
+
+            <!-- Submit button welcher das Formular abschickt (nicht bevor wir aber in die Datei Formular.js gehen.) -->
+            <button type="submit" class="btn btn-primary">Login</button>
+        </div>
+    </div>
+</form>
