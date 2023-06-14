@@ -1,6 +1,8 @@
 ﻿using AarauCoinMVC.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
 
 namespace AarauCoinMVC.Controllers
 {
@@ -16,8 +18,6 @@ namespace AarauCoinMVC.Controllers
 
         public IActionResult Index()
         {
-            bool isLoggedIn = false; // determine users authentication status
-            ViewBag.IsLoggedIn = isLoggedIn;
             return View("Index");
         }
 
@@ -38,16 +38,44 @@ namespace AarauCoinMVC.Controllers
 
         public IActionResult LoginAction(string username, string password)
         {
+            // TODO: Program actual login code here
+            // TODO: Only do this if login is successful
+            // TODO: Save user rights and username in Claim
+            // TODO: Add idle timeout
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, "Username"), // Add claims as needed
+                new Claim (ClaimTypes.Role, "Role") // Add claims as needed
+            };
+
+            // WARNING: DO NOT USE THIS CODE IN PRODUCTION
+            // GET DATA FROM COOKIE
+            var a = User.Identity.Name;
+            var b = User.Identity.IsAuthenticated;
+            var c = User.Identity.AuthenticationType;
+            var d = User.Identity.Name;
+            var e = User.FindFirst(ClaimTypes.Role);
+
+            var claimsIdentity = new ClaimsIdentity(claims, "YourAuthenticationScheme");
+            var authProperties = new AuthenticationProperties
+            {
+                IsPersistent = true, // Set whether the cookie should persist across sessions
+                ExpiresUtc = DateTime.UtcNow.AddMinutes(1) // Set the expiration time of the cookie
+            };
+
+            HttpContext.SignInAsync("YourAuthenticationScheme", new ClaimsPrincipal(claimsIdentity), authProperties);
             // replace with actual login code
-            ViewBag.IsLoggedIn = true; // only do if login is successful
-            return View("Index");
+            return RedirectToAction("Index", "Home");
         }
 
         public IActionResult LogoutAction(string username)
         {
-            // replace with actual logout code
-            ViewBag.IsLoggedIn = false; // only do if logout is successful
-            return View("Index");
+            // TODO: Only do this if logout is successful
+
+            HttpContext.SignOutAsync("YourAuthenticationScheme");
+
+            return RedirectToAction("Index", "Home");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

@@ -27,7 +27,7 @@
                         <li class="nav-item">
                             @{
                                 //check if user is logged in, if yes display logout otherwise display login 
-                                // issue is we cant access the viewbag from here which is annoying
+                                // issue is we cant access the viewbag from here
                                 if (User.Identity.IsAuthenticated)
                                 {
                                     <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="LogoutAction">Logout</a>
