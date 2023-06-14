@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AarauCoinMVC.Controllers
 {
@@ -21,6 +22,7 @@ namespace AarauCoinMVC.Controllers
             return View("Index");
         }
 
+        //[Authorize] -- Does not work yet probably needs more arguments
         public IActionResult Privacy()
         {
             // Knows to return Privacy View because of the name of the method
@@ -42,20 +44,13 @@ namespace AarauCoinMVC.Controllers
             // TODO: Only do this if login is successful
             // TODO: Save user rights and username in Claim
             // TODO: Add idle timeout
+            // TODO: Only show Log in Navbar when Admin User is logged in (If Statement in cshtml of Shared Layout)
 
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, "Username"), // Add claims as needed
                 new Claim (ClaimTypes.Role, "Role") // Add claims as needed
             };
-
-            // WARNING: DO NOT USE THIS CODE IN PRODUCTION
-            // GET DATA FROM COOKIE
-            var a = User.Identity.Name;
-            var b = User.Identity.IsAuthenticated;
-            var c = User.Identity.AuthenticationType;
-            var d = User.Identity.Name;
-            var e = User.FindFirst(ClaimTypes.Role);
 
             var claimsIdentity = new ClaimsIdentity(claims, "YourAuthenticationScheme");
             var authProperties = new AuthenticationProperties
@@ -65,7 +60,15 @@ namespace AarauCoinMVC.Controllers
             };
 
             HttpContext.SignInAsync("YourAuthenticationScheme", new ClaimsPrincipal(claimsIdentity), authProperties);
-            // replace with actual login code
+
+            // WARNING: DO NOT USE THIS CODE IN PRODUCTION
+            // GET DATA FROM COOKIE
+            var a = User.Identity.Name;
+            var b = User.Identity.IsAuthenticated;
+            var c = User.Identity.AuthenticationType;
+            var d = User.Identity.Name;
+            var e = User.FindFirst(ClaimTypes.Role);
+
             return RedirectToAction("Index", "Home");
         }
 
