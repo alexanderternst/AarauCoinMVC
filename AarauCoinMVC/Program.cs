@@ -1,3 +1,7 @@
+using AarauCoinMVC.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.InMemory;
+
 namespace AarauCoinMVC
 {
     public class Program
@@ -6,6 +10,7 @@ namespace AarauCoinMVC
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Services.AddDbContext<AarauCoinContext>(options => options.UseInMemoryDatabase(databaseName: "AuthorDb"));
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
