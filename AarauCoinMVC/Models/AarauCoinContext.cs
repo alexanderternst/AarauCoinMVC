@@ -7,7 +7,10 @@ namespace AarauCoinMVC.Models
         public DbSet<User> Users { get; set; }
         public DbSet<Coin> Coins { get; set; }
         public DbSet<Level> Levels { get; set; }
-
+        public AarauCoinContext()
+        {
+                
+        }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseInMemoryDatabase(databaseName: "AuthorDb");
