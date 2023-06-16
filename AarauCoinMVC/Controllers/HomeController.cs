@@ -5,64 +5,32 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
+using AarauCoinMVC.Services;
 
 namespace AarauCoinMVC.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
-        private readonly AarauCoinContext _context;
 
-        public HomeController(ILogger<HomeController> logger, AarauCoinContext context)
+        private readonly ILogger<HomeController> _logger;
+        private readonly IDatabaseCon _context;
+
+        public HomeController(ILogger<HomeController> logger, IDatabaseCon context)
         {
             _context = context;
             _logger = logger;
-
-            List<User> user = _context.Users.ToList();
-            List<Level> lev = _context.Levels.ToList();
-
-            if (user.Count == 0 && lev.Count == 0)
-            {
-                _context.Levels.Add(new Level
-                {
-                    LevelId = 1,
-                    LevelName = "Admin"
-                });
-                _context.SaveChanges();
-
-                _context.Levels.Add(new Level
-                {
-                    LevelId = 2,
-                    LevelName = "User"
-                });
-                _context.SaveChanges();
-
-                _context.Users.Add(new User
-                {
-                    Username = "Hans",
-                    Password = "123",
-                    LevelId = _context.Levels.FirstOrDefault(s => s.LevelName == "User")
-                });
-                _context.SaveChanges();
-
-                _context.Users.Add(new User
-                {
-                    Username = "Alex",
-                    Password = "123",
-                    LevelId = _context.Levels.FirstOrDefault(s => s.LevelName == "Admin")
-                });
-                _context.SaveChanges();
-            }
         }
 
         public IActionResult Index()
         {
+            _logger.LogInformation("Index page says hello");
             return View("Index");
         }
 
         //[Authorize] -- Does not work yet probably needs more arguments
         public IActionResult Privacy()
         {
+            _logger.LogInformation("Privacy page says hello");
             // Knows to return Privacy View because of the name of the method
             // This works because HomeController inherits from Controller
             // We can also specify the name of the View to return like we did in Index()
@@ -71,6 +39,7 @@ namespace AarauCoinMVC.Controllers
 
         public IActionResult Login()
         {
+            _logger.LogInformation($"Login page says hello");
             // open login page
             // we can either do if statement here or in cshtml (to check if user is logged in and return appropriate view)
             return View();
@@ -78,14 +47,7 @@ namespace AarauCoinMVC.Controllers
 
         public IActionResult LoginAction(LoginModel loginData)
         {
-            UserLoginDTO list = _context.Users.
-                    Select(e => new UserLoginDTO
-                    {
-                        Id = e.UserId,
-                        Username = e.Username,
-                        Password = e.Password,
-                        Level = e.LevelId.LevelName
-                    }).First(s => s.Username == loginData.Username);
+            var list = _context.GetUser(loginData);
 
             if (loginData.Username == list.Username && loginData.Password == list.Password)
             {
@@ -119,7 +81,7 @@ namespace AarauCoinMVC.Controllers
             //var c = HttpContext.User.Claims.FirstOrDefault(s => s.Type == ClaimTypes.Role);
             //var b = User.FindFirst(ClaimTypes.Role).Value.ToString();
 
-            HttpContext.SignOutAsync("YourAuthenticationScheme");
+            HttpContext.SignOutAsync("AarauCoin-AuthenticationScheme");
             return RedirectToAction("Index", "Home");
         }
 

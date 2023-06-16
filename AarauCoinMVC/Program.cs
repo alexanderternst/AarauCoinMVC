@@ -1,6 +1,8 @@
 using AarauCoinMVC.Models;
+using AarauCoinMVC.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.InMemory;
+using Serilog;
 
 namespace AarauCoinMVC
 {
@@ -10,6 +12,14 @@ namespace AarauCoinMVC
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            var logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration)
+                .Enrich.FromLogContext()
+                .CreateLogger();
+            builder.Logging.ClearProviders();
+            builder.Logging.AddSerilog(logger);
+
+            builder.Services.AddScoped<IDatabaseCon, DatabseCon>();
+
             // TODO: Improve with better names
             builder.Services.AddAuthentication(options =>
                 {
@@ -17,7 +27,7 @@ namespace AarauCoinMVC
                     options.DefaultSignInScheme = "AarauCoin-AuthenticationScheme";
                     options.DefaultChallengeScheme = "AarauCoin-AuthenticationScheme";
                 })
-                .AddCookie("YourAuthenticationScheme", options =>
+                .AddCookie("AarauCoin-AuthenticationScheme", options =>
                 {
                     // Configure the authentication cookie options
                     options.Cookie.Name = "AarauCoin-AuthenticationCookie";
