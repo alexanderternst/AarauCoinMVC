@@ -10,6 +10,21 @@ namespace AarauCoinMVC
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // TODO: Improve with better names
+            builder.Services.AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = "AarauCoin-AuthenticationScheme";
+                    options.DefaultSignInScheme = "AarauCoin-AuthenticationScheme";
+                    options.DefaultChallengeScheme = "AarauCoin-AuthenticationScheme";
+                })
+                .AddCookie("YourAuthenticationScheme", options =>
+                {
+                    // Configure the authentication cookie options
+                    options.Cookie.Name = "AarauCoin-AuthenticationCookie";
+                    options.Cookie.HttpOnly = true;
+                    options.SlidingExpiration = true;
+                });
+
             builder.Services.AddDbContext<AarauCoinContext>(options => options.UseInMemoryDatabase(databaseName: "AuthorDb"));
             // Add services to the container.
             builder.Services.AddControllersWithViews();
@@ -30,6 +45,8 @@ namespace AarauCoinMVC
             app.UseRouting();
 
             app.UseAuthorization();
+
+            app.UseAuthentication();
 
             app.MapControllerRoute(
                 name: "default",

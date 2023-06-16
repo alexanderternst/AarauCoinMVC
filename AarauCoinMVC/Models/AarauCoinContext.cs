@@ -11,6 +11,13 @@ namespace AarauCoinMVC.Models
         {
                 
         }
+
+        public AarauCoinContext(DbContextOptions<AarauCoinContext> options)
+            :base(options)
+        {
+            
+        }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseInMemoryDatabase(databaseName: "AuthorDb");
