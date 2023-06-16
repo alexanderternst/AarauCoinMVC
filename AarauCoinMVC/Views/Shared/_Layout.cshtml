@@ -1,5 +1,6 @@
 ﻿@using AarauCoinMVC.Controllers
 @using Microsoft.Build.Logging
+@using System.Security.Claims;
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -26,7 +27,7 @@
                         </li>
                         <li class="nav-item">
                             @{
-                                //check if user is logged in, if yes display logout otherwise display login 
+                                //check if user is logged in, if yes display logout otherwise display login
                                 // issue is we cant access the viewbag from here
                                 if (User.Identity.IsAuthenticated)
                                 {
@@ -38,7 +39,17 @@
                                 }
                             }
                         </li>
-                        
+
+                        <li class="nav-item">
+                            @{
+                                // Does not exist
+                                if (User.Identity.IsAuthenticated && User.FindFirst(ClaimTypes.Role).Value.ToString() == "Admin")
+                                {
+                                    <a class="nav-link text-dark">Logs</a>
+                                }
+                            }
+                        </li>
+
                         @*TODO: Add Navbar Option for Logs and only show when logged in user has valid permissions to see Logs (admin)*@
 
                     </ul>

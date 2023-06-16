@@ -13,14 +13,14 @@ namespace AarauCoinMVC
             // TODO: Improve with better names
             builder.Services.AddAuthentication(options =>
                 {
-                    options.DefaultAuthenticateScheme = "YourAuthenticationScheme";
-                    options.DefaultSignInScheme = "YourAuthenticationScheme";
-                    options.DefaultChallengeScheme = "YourAuthenticationScheme";
+                    options.DefaultAuthenticateScheme = "AarauCoin-AuthenticationScheme";
+                    options.DefaultSignInScheme = "AarauCoin-AuthenticationScheme";
+                    options.DefaultChallengeScheme = "AarauCoin-AuthenticationScheme";
                 })
                 .AddCookie("YourAuthenticationScheme", options =>
                 {
                     // Configure the authentication cookie options
-                    options.Cookie.Name = "YourAuthenticationCookie";
+                    options.Cookie.Name = "AarauCoin-AuthenticationCookie";
                     options.Cookie.HttpOnly = true;
                     options.SlidingExpiration = true;
                 });

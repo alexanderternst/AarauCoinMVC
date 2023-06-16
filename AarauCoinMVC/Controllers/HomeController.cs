@@ -4,17 +4,55 @@ using System.Diagnostics;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 
 namespace AarauCoinMVC.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly AarauCoinContext _context;
 
-
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, AarauCoinContext context)
         {
+            _context = context;
             _logger = logger;
+
+            List<User> user = _context.Users.ToList();
+            List<Level> lev = _context.Levels.ToList();
+
+            if (user.Count == 0 && lev.Count == 0)
+            {
+                _context.Levels.Add(new Level
+                {
+                    LevelId = 1,
+                    LevelName = "Admin"
+                });
+                _context.SaveChanges();
+
+                _context.Levels.Add(new Level
+                {
+                    LevelId = 2,
+                    LevelName = "User"
+                });
+                _context.SaveChanges();
+
+                _context.Users.Add(new User
+                {
+                    Username = "Hans",
+                    Password = "123",
+                    LevelId = _context.Levels.FirstOrDefault(s => s.LevelName == "User")
+                });
+                _context.SaveChanges();
+
+                _context.Users.Add(new User
+                {
+                    Username = "Alex",
+                    Password = "123",
+                    LevelId = _context.Levels.FirstOrDefault(s => s.LevelName == "Admin")
+                });
+                _context.SaveChanges();
+            }
         }
 
         public IActionResult Index()
@@ -38,46 +76,50 @@ namespace AarauCoinMVC.Controllers
             return View();
         }
 
-        public IActionResult LoginAction(string username, string password)
+        public IActionResult LoginAction(LoginModel loginData)
         {
-            // TODO: Program actual login code here
-            // TODO: Only do this if login is successful
-            // TODO: Save user rights and username in Claim
-            // TODO: Add idle timeout
-            // TODO: Only show Log in Navbar when Admin User is logged in (If Statement in cshtml of Shared Layout)
+            UserLoginDTO list = _context.Users.
+                    Select(e => new UserLoginDTO
+                    {
+                        Id = e.UserId,
+                        Username = e.Username,
+                        Password = e.Password,
+                        Level = e.LevelId.LevelName
+                    }).First(s => s.Username == loginData.Username);
 
-            var claims = new List<Claim>
+            if (loginData.Username == list.Username && loginData.Password == list.Password)
             {
-                new Claim(ClaimTypes.Name, "Username"), // Add claims as needed
-                new Claim (ClaimTypes.Role, "Role") // Add claims as needed
-            };
 
-            var claimsIdentity = new ClaimsIdentity(claims, "YourAuthenticationScheme");
-            var authProperties = new AuthenticationProperties
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, loginData.Username), // Add claims as needed
+                    new Claim (ClaimTypes.Role, list.Level) // Add claims as needed
+                };
+
+                var claimsIdentity = new ClaimsIdentity(claims, "AarauCoin-AuthenticationScheme");
+                var authProperties = new AuthenticationProperties
+                {
+                    IsPersistent = true, // Set whether the cookie should persist across sessions
+                    ExpiresUtc = DateTime.UtcNow.AddMinutes(1) // Set the expiration time of the cookie
+                };
+
+                HttpContext.SignInAsync("AarauCoin-AuthenticationScheme", new ClaimsPrincipal(claimsIdentity), authProperties);
+                
+                return RedirectToAction("Index", "Home");
+            }
+            else
             {
-                IsPersistent = true, // Set whether the cookie should persist across sessions
-                ExpiresUtc = DateTime.UtcNow.AddMinutes(1) // Set the expiration time of the cookie
-            };
-
-            HttpContext.SignInAsync("YourAuthenticationScheme", new ClaimsPrincipal(claimsIdentity), authProperties);
-
-            // WARNING: DO NOT USE THIS CODE IN PRODUCTION
-            // GET DATA FROM COOKIE
-            var a = User.Identity.Name;
-            var b = User.Identity.IsAuthenticated;
-            var c = User.Identity.AuthenticationType;
-            var d = User.Identity.Name;
-            var e = User.FindFirst(ClaimTypes.Role);
-
-            return RedirectToAction("Index", "Home");
+                return RedirectToAction("Login", "Login");
+            }
         }
 
         public IActionResult LogoutAction(string username)
         {
-            // TODO: Only do this if logout is successful
+            //var a = HttpContext.User.Claims.ToList();
+            //var c = HttpContext.User.Claims.FirstOrDefault(s => s.Type == ClaimTypes.Role);
+            //var b = User.FindFirst(ClaimTypes.Role).Value.ToString();
 
             HttpContext.SignOutAsync("YourAuthenticationScheme");
-
             return RedirectToAction("Index", "Home");
         }
 
