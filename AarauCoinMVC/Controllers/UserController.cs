@@ -36,8 +36,9 @@ namespace AarauCoinMVC.Controllers
                 }
                 else
                 {
-                    // Handle failed login
-                    return RedirectToAction("Login", "Login");
+                    ViewBag.ErrorMessage = "Login failed";
+                    ViewBag.ErrorType = "info";
+                    return View("Login");
                 }
             }
             catch (Exception ex)
