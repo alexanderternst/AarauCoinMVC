@@ -4,7 +4,7 @@ namespace AarauCoinMVC.Services
 {
     public interface IDatabaseCon
     {
-        public UserLoginDTO GetUser(LoginViewModel loginData);
+        public UserLoginDTO? GetUser(string username);
 
         public List<LogViewModel> ReadLog(string date);
     }

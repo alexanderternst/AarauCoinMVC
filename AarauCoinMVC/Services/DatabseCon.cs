@@ -47,16 +47,16 @@ namespace AarauCoinMVC.Services
             }
         }
 
-        public UserLoginDTO GetUser(LoginViewModel loginData)
+        public UserLoginDTO? GetUser(string username)
         {
-            UserLoginDTO list = _context.Users.
+            UserLoginDTO? list = _context.Users.
                     Select(e => new UserLoginDTO
                     {
                         Id = e.UserId,
                         Username = e.Username,
                         Password = e.Password,
                         Level = e.LevelId.LevelName
-                    }).First(s => s.Username == loginData.Username);
+                    }).FirstOrDefault(s => s.Username.ToLower() == username.ToLower());
             return list;
         }
 

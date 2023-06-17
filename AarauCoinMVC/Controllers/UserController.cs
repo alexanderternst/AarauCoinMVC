@@ -27,19 +27,32 @@ namespace AarauCoinMVC.Controllers
         {
             try
             {
-                var list = _context.GetUser(loginData);
+                if (loginData.Username == null || loginData.Password == null)
+                    throw new Exception("Username or password is null");
+                    
+                var list = _context.GetUser(loginData.Username);
+                // Need this code to prevent null reference exception
+                // when the user is not found in the database list is null
+                if (list == null)
+                    throw new LoginFailedException();
 
-                if (loginData.Username == list.Username && loginData.Password == list.Password)
+                if (loginData.Username.ToLower() == list.Username.ToLower() && loginData.Password == list.Password)
                 {
                     CreateLoginCookie(loginData, list.Level);
+                    _logger.LogInformation($"User {loginData.Username} logged in");
                     return RedirectToAction("Index", "Home");
                 }
                 else
                 {
-                    ViewBag.ErrorMessage = "Login failed";
-                    ViewBag.ErrorType = "info";
-                    return View("Login");
+                    throw new LoginFailedException();
                 }
+            }
+            catch (LoginFailedException)
+            {
+                _logger.LogInformation($"User with {loginData.Username} failed to log in");
+                ViewBag.ErrorMessage = "Login failed, incorrect password or username";
+                ViewBag.ErrorType = "info";
+                return View("Login");
             }
             catch (Exception ex)
             {
@@ -50,7 +63,7 @@ namespace AarauCoinMVC.Controllers
             }
         }
 
-        public void CreateLoginCookie(LoginViewModel loginData, string level)
+        private void CreateLoginCookie(LoginViewModel loginData, string level)
         {
             var claims = new List<Claim>
                 {
