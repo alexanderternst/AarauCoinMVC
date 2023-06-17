@@ -34,7 +34,7 @@ namespace AarauCoinMVC.Controllers
                 // Need this code to prevent null reference exception
                 // when the user is not found in the database list is null
                 if (list == null)
-                    list = new UserLoginDTO() { Id = 1, Username = "", Password = "" };
+                    throw new LoginFailedException();
 
                 if (loginData.Username.ToLower() == list.Username.ToLower() && loginData.Password == list.Password)
                 {
@@ -44,10 +44,7 @@ namespace AarauCoinMVC.Controllers
                 }
                 else
                 {
-                    _logger.LogInformation($"User with {loginData.Username} failed to log in");
-                    ViewBag.ErrorMessage = "Login failed, incorrect password or username";
-                    ViewBag.ErrorType = "info";
-                    return View("Login");
+                    throw new LoginFailedException();
                 }
             }
             catch (LoginFailedException)
@@ -66,7 +63,7 @@ namespace AarauCoinMVC.Controllers
             }
         }
 
-        public void CreateLoginCookie(LoginViewModel loginData, string level)
+        private void CreateLoginCookie(LoginViewModel loginData, string level)
         {
             var claims = new List<Claim>
                 {
