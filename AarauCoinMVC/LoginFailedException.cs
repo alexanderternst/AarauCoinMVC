@@ -1,13 +1,16 @@
-﻿using System;
-
-namespace AarauCoinMVC
+﻿namespace AarauCoinMVC
 {
     public class LoginFailedException : Exception
     {
-        public LoginFailedException() { }
+        public LoginFailedException()
+        { }
 
-        public LoginFailedException(string message) : base(message) { }
+        public LoginFailedException(string message) : base(message)
+        {
+        }
 
-        public LoginFailedException(string message, Exception innerException) : base(message, innerException) { }
+        public LoginFailedException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
     }
 }
