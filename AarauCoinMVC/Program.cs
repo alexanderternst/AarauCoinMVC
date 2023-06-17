@@ -1,7 +1,7 @@
 using AarauCoinMVC.Models;
 using AarauCoinMVC.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.InMemory;
+using Microsoft.Extensions.FileSystemGlobbing.Internal.Patterns;
 using Serilog;
 
 namespace AarauCoinMVC
@@ -20,7 +20,8 @@ namespace AarauCoinMVC
 
             builder.Services.AddScoped<IDatabaseCon, DatabseCon>();
 
-            // TODO: Improve with better names
+            //
+            // : Improve with better names
             builder.Services.AddAuthentication(options =>
                 {
                     options.DefaultAuthenticateScheme = "AarauCoin-AuthenticationScheme";
@@ -60,7 +61,7 @@ namespace AarauCoinMVC
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+                pattern: "{controller=Home}/{action=Index}");
 
             app.Run();
         }

@@ -1,15 +1,13 @@
 ﻿using AarauCoinMVC.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace AarauCoinMVC.Services
 {
     public class DatabseCon : IDatabaseCon
     {
-
         private readonly AarauCoinContext _context;
+
         public DatabseCon(AarauCoinContext context)
         {
-
             _context = context;
 
             List<User> user = _context.Users.ToList();
@@ -48,7 +46,8 @@ namespace AarauCoinMVC.Services
                 _context.SaveChanges();
             }
         }
-        public UserLoginDTO GetUser(LoginModel loginData)
+
+        public UserLoginDTO GetUser(LoginViewModel loginData)
         {
             UserLoginDTO list = _context.Users.
                     Select(e => new UserLoginDTO
@@ -58,6 +57,37 @@ namespace AarauCoinMVC.Services
                         Password = e.Password,
                         Level = e.LevelId.LevelName
                     }).First(s => s.Username == loginData.Username);
+            return list;
+        }
+
+        public List<LogViewModel> ReadLog(string date)
+        {
+            string fileName = $"../logs/webapi-{date}.log";
+
+            if (!File.Exists(fileName))
+                throw new FileNotFoundException("File not found", fileName);
+
+            string fileContent = string.Empty;
+            using (var fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                StreamReader streamReader = new StreamReader(fileStream);
+                fileContent = streamReader.ReadToEnd();
+            }
+            List<LogViewModel> list = new List<LogViewModel>();
+
+            foreach (var line in fileContent.Split("\n"))
+            {
+                var data = line.Split("]");
+
+                if (data.Length < 2)
+                    continue;
+
+                string datum = data[0];
+                string message = data[1];
+                LogViewModel log = new LogViewModel() { LogDate = datum, LogMessage = message };
+
+                list.Add(log);
+            }
             return list;
         }
     }
