@@ -21,7 +21,7 @@ namespace AarauCoinMVC.Controllers
             if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
                 return View();
             else
-                return RedirectToAction("Login");
+                return RedirectToAction("Login", "User");
         }
 
         public IActionResult ShowLog(DateTime date, string searchContent)

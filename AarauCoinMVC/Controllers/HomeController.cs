@@ -19,7 +19,7 @@ namespace AarauCoinMVC.Controllers
         public IActionResult Index()
         {
             _logger.LogInformation("Index page says hello");
-            return View("Index");
+            return View();
         }
 
         public IActionResult Privacy()

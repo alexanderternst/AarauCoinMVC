@@ -47,7 +47,7 @@ namespace AarauCoinMVC.Services
             }
         }
 
-        public UserLoginDTO GetUser(LoginModel loginData)
+        public UserLoginDTO GetUser(LoginViewModel loginData)
         {
             UserLoginDTO list = _context.Users.
                     Select(e => new UserLoginDTO

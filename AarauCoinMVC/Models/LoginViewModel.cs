@@ -2,7 +2,7 @@
 
 namespace AarauCoinMVC.Models
 {
-    public class LoginModel
+    public class LoginViewModel
     {
         public string Username { get; set; }
 

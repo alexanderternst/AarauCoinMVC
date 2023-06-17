@@ -23,7 +23,7 @@ namespace AarauCoinMVC.Controllers
             return View();
         }
 
-        public IActionResult LoginAction(LoginModel loginData)
+        public IActionResult LoginAction(LoginViewModel loginData)
         {
             try
             {
@@ -50,25 +50,25 @@ namespace AarauCoinMVC.Controllers
             }
         }
 
-        public void CreateLoginCookie(LoginModel loginData, string level)
+        public void CreateLoginCookie(LoginViewModel loginData, string level)
         {
             var claims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.Name, loginData.Username), // Add claims as needed
-                    new Claim (ClaimTypes.Role, level) // Add claims as needed
+                    new Claim(ClaimTypes.Name, loginData.Username),
+                    new Claim (ClaimTypes.Role, level)
                 };
 
             var claimsIdentity = new ClaimsIdentity(claims, "AarauCoin-AuthenticationScheme");
             var authProperties = new AuthenticationProperties
             {
-                IsPersistent = true, // Set whether the cookie should persist across sessions
-                ExpiresUtc = DateTime.UtcNow.AddMinutes(1) // Set the expiration time of the cookie
+                IsPersistent = true,
+                ExpiresUtc = DateTime.UtcNow.AddMinutes(1)
             };
 
             HttpContext.SignInAsync("AarauCoin-AuthenticationScheme", new ClaimsPrincipal(claimsIdentity), authProperties);
         }
 
-        public IActionResult LogoutAction(string username)
+        public IActionResult Logout()
         {
             //var a = HttpContext.User.Claims.ToList();
             //var c = HttpContext.User.Claims.FirstOrDefault(s => s.Type == ClaimTypes.Role);
