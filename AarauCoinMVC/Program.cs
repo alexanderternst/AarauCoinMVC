@@ -1,7 +1,6 @@
 using AarauCoinMVC.Models;
 using AarauCoinMVC.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.FileSystemGlobbing.Internal.Patterns;
 using Serilog;
 
 namespace AarauCoinMVC

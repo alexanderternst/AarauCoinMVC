@@ -4,16 +4,16 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AarauCoinMVC.Controllers
 {
-    public class LogController : Controller
+    public class LogEntryController : Controller
     {
-        private readonly ILogger<LogController> _logger;
+        private readonly ILogger<LogEntryController> _logger;
         private readonly IDatabaseCon _context;
 
-        public LogController(ILogger<LogController> logger, IDatabaseCon context)
+        public LogEntryController(ILogger<LogEntryController> logger, IDatabaseCon context)
         {
             ViewBag.ErrorMessage = null;
             _context = context;
-            _logger = logger; 
+            _logger = logger;
         }
 
         public IActionResult Log()

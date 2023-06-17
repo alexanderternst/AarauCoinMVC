@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace AarauCoinMVC.Models
+﻿namespace AarauCoinMVC.Models
 {
     public class LoginViewModel
     {
