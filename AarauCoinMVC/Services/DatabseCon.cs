@@ -1,15 +1,13 @@
 ﻿using AarauCoinMVC.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace AarauCoinMVC.Services
 {
     public class DatabseCon : IDatabaseCon
     {
-
         private readonly AarauCoinContext _context;
+
         public DatabseCon(AarauCoinContext context)
         {
-
             _context = context;
 
             List<User> user = _context.Users.ToList();
@@ -48,6 +46,7 @@ namespace AarauCoinMVC.Services
                 _context.SaveChanges();
             }
         }
+
         public UserLoginDTO GetUser(LoginModel loginData)
         {
             UserLoginDTO list = _context.Users.
@@ -64,10 +63,10 @@ namespace AarauCoinMVC.Services
         public List<LogViewModel> ReadLog(string date)
         {
             string fileName = $"../logs/webapi-{date}.log";
-            
-            if(!File.Exists(fileName))
+
+            if (!File.Exists(fileName))
                 throw new FileNotFoundException("File not found", fileName);
-            
+
             string fileContent = string.Empty;
             using (var fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
@@ -79,7 +78,7 @@ namespace AarauCoinMVC.Services
             foreach (var line in fileContent.Split("\n"))
             {
                 var data = line.Split("]");
-                
+
                 if (data.Length < 2)
                     continue;
 
