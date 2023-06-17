@@ -6,12 +6,12 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using AarauCoinMVC.Services;
+using System.IO;
 
 namespace AarauCoinMVC.Controllers
 {
     public class HomeController : Controller
     {
-
         private readonly ILogger<HomeController> _logger;
         private readonly IDatabaseCon _context;
 
@@ -20,6 +20,63 @@ namespace AarauCoinMVC.Controllers
             _context = context;
             _logger = logger;
         }
+
+        public IActionResult Log()
+        {
+            if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+            {
+                return View();
+            }
+            else
+            {
+                return RedirectToAction("Login");
+            }
+        }
+
+        public IActionResult ShowLog(DateTime date, string searchContent)
+        {
+            try
+            {
+                string datestring = date.ToString("yyyyMMdd");
+                List<LogViewModel> logs = _context.ReadLog(datestring);
+                var filteredLogs = logs
+                    .Where(
+                        s => string.IsNullOrWhiteSpace(searchContent) ||
+                        s.LogMessage.ToLower().Contains(searchContent.ToLower().Trim())
+                            );
+                logs = filteredLogs.ToList();
+
+                //ViewBag.Logs = logs;
+                return View("Log", logs);
+            }
+            catch (FileNotFoundException ex)
+            {
+                _logger.LogError("File not found" + ex.Message);
+                // Handle error
+                return RedirectToAction("Log");
+            }
+            catch (IOException ex)
+            {
+                _logger.LogError("IO Exception" + ex.Message);
+                // Handle error
+                return RedirectToAction("Log");
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Unknown Exception" + ex.Message);
+                // Handle error
+                return RedirectToAction("Log");
+            }
+        }
+
+        //public IActionResult SearchLog(string searchContent)
+        //{
+        //    List<LogViewModel> logs = ViewBag.Logs;
+        //    logs = (List<LogViewModel>)logs.Where(s => s.LogMessage.Contains(searchContent)); ;
+        //    return View("Log", logs);
+        //}
+
 
         public IActionResult Index()
         {
@@ -66,7 +123,7 @@ namespace AarauCoinMVC.Controllers
                 };
 
                 HttpContext.SignInAsync("AarauCoin-AuthenticationScheme", new ClaimsPrincipal(claimsIdentity), authProperties);
-                
+
                 return RedirectToAction("Index", "Home");
             }
             else

@@ -60,5 +60,36 @@ namespace AarauCoinMVC.Services
                     }).First(s => s.Username == loginData.Username);
             return list;
         }
+
+        public List<LogViewModel> ReadLog(string date)
+        {
+            string fileName = $"../logs/webapi-{date}.log";
+            
+            if(!File.Exists(fileName))
+                throw new FileNotFoundException("File not found", fileName);
+            
+            string fileContent = string.Empty;
+            using (var fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                StreamReader streamReader = new StreamReader(fileStream);
+                fileContent = streamReader.ReadToEnd();
+            }
+            List<LogViewModel> list = new List<LogViewModel>();
+
+            foreach (var line in fileContent.Split("\n"))
+            {
+                var data = line.Split("]");
+                
+                if (data.Length < 2)
+                    continue;
+
+                string datum = data[0];
+                string message = data[1];
+                LogViewModel log = new LogViewModel() { LogDate = datum, LogMessage = message };
+
+                list.Add(log);
+            }
+            return list;
+        }
     }
 }
