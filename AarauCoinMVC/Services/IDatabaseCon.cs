@@ -6,6 +6,8 @@ namespace AarauCoinMVC.Services
     {
         public UserLoginDTO? GetUser(string username);
 
+        public AccountViewModel? GetUserInformation(string username);
+
         public List<LogViewModel> ReadLog(string date);
     }
 }

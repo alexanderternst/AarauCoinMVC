@@ -61,6 +61,19 @@ namespace AarauCoinMVC.Services
             return list;
         }
 
+
+        public AccountViewModel? GetUserInformation(string username)
+        {
+              AccountViewModel? list = _context.Users.
+                    Select(e => new AccountViewModel
+                    {
+                        Username = e.Username,
+                        Level = e.LevelId.LevelName,
+                        Coins = _context.Coins.Where(s => s.UserId.Username == username).FirstOrDefault(),
+                    }).FirstOrDefault(s => s.Username.ToLower() == username.ToLower());
+            return list;
+        }
+
         public List<LogViewModel> ReadLog(string date)
         {
             string fileName = $"../logs/webapi-{date}.log";

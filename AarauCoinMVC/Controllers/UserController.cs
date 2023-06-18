@@ -30,14 +30,14 @@ namespace AarauCoinMVC.Controllers
                 if (loginData.Username == null || loginData.Password == null)
                     throw new Exception("Username or password is null");
 
-                var list = _context.GetUser(loginData.Username);
+                var user = _context.GetUser(loginData.Username);
 
-                if (list == null)
+                if (user == null)
                     throw new LoginFailedException();
 
-                if (loginData.Username.ToLower() == list.Username.ToLower() && loginData.Password == list.Password)
+                if (loginData.Username.ToLower() == user.Username.ToLower() && loginData.Password == user.Password)
                 {
-                    CreateLoginCookie(loginData, list.Level);
+                    CreateLoginCookie(loginData, user.Level);
                     _logger.LogInformation($"User {loginData.Username} logged in");
                     return RedirectToAction("Index", "Home");
                 }
@@ -88,6 +88,20 @@ namespace AarauCoinMVC.Controllers
 
             HttpContext.SignOutAsync("AarauCoin-AuthenticationScheme");
             return RedirectToAction("Index", "Home");
+        }
+
+        public IActionResult Account()
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                var userInformation = _context.GetUserInformation(User.Identity.Name);
+                _logger.LogInformation($"User {User.Identity.Name} loaded account page");
+                return View(userInformation);
+            }
+            else
+            {
+                return RedirectToAction("Login", "User");
+            }
         }
     }
 }
