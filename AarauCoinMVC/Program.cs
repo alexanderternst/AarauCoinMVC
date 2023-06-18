@@ -1,3 +1,4 @@
+using AarauCoinMVC.Middleware;
 using AarauCoinMVC.Models;
 using AarauCoinMVC.Services;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +27,7 @@ namespace AarauCoinMVC
                     options.DefaultAuthenticateScheme = "AarauCoin-AuthenticationScheme";
                     options.DefaultSignInScheme = "AarauCoin-AuthenticationScheme";
                     options.DefaultChallengeScheme = "AarauCoin-AuthenticationScheme";
+
                 })
                 .AddCookie("AarauCoin-AuthenticationScheme", options =>
                 {
@@ -33,11 +35,21 @@ namespace AarauCoinMVC
                     options.Cookie.Name = "AarauCoin-AuthenticationCookie";
                     options.Cookie.HttpOnly = true;
                     options.SlidingExpiration = true;
+                    options.LoginPath = "/User/Login"; 
+                    options.LogoutPath = "/User/Logout"; 
                 });
 
             builder.Services.AddDbContext<AarauCoinContext>(options => options.UseInMemoryDatabase(databaseName: "AuthorDb"));
+
+            builder.Services.AddHttpContextAccessor();
+
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+
+            builder.Services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromSeconds(30); // Set the desired idle timeout value
+            });
 
             var app = builder.Build();
 
@@ -48,7 +60,7 @@ namespace AarauCoinMVC
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-
+            app.UseSession();
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
@@ -57,6 +69,8 @@ namespace AarauCoinMVC
             app.UseAuthorization();
 
             app.UseAuthentication();
+
+            app.UseMiddleware<TimeoutMiddleware>();
 
             app.MapControllerRoute(
                 name: "default",

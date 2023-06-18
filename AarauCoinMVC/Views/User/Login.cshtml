@@ -34,7 +34,15 @@
 
 
             <!-- Submit button welcher das Formular abschickt (nicht bevor wir aber in die Datei Formular.js gehen.) -->
-            <button type="submit" class="btn btn-primary">Login</button>
+            <button type="submit" class="btn btn-primary" onclick="startLogoutTimer()">Login</button>
         </div>
     </div>
 </form>
+
+@if (User.Identity.IsAuthenticated)
+{
+    <script>
+        // Execute the JavaScript function to start the logout timer
+        startLogoutTimer();
+    </script>
+}

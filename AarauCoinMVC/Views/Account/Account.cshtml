@@ -1,0 +1,11 @@
+﻿@model bool
+
+<h2>Idle Timeout</h2>
+
+<p>Your session has expired due to inactivity.</p>
+<p>Do you want to stay logged in?</p>
+
+<form method="post" asp-action="IdleTimeout">
+    <input type="text" name="stayLoggedIn" />
+    <button type="submit">Stay Logged In</button>
+</form>

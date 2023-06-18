@@ -44,6 +44,8 @@ namespace AarauCoinMVC.Controllers
                 {
                     CreateLoginCookie(loginData, user.Level);
                     _logger.LogInformation($"User {loginData.Username} logged in");
+                    //HttpContext.Session.SetString("LastActivity", DateTime.UtcNow.ToString());
+
                     return RedirectToAction("Index", "Home");
                 }
                 else

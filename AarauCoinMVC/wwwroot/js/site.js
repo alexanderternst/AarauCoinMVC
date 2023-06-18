@@ -8,3 +8,22 @@ $(document).ready(function () {
         startDate: '-3d'
     });
 });
+
+var logoutTimeout;
+
+function startLogoutTimer() {
+
+    await sleep(3000);
+    promptLogout() 
+
+}
+
+function promptLogout() {
+
+    var confirmLogout = confirm("You have been logged in for 1 minute. Do you want to stay logged in?");
+
+    if (!confirmLogout) {
+
+        window.location.href = '@Url.Action("Logout", "User")'; // Redirect to the logout action
+    }
+}
