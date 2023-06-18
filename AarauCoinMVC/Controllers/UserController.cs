@@ -34,7 +34,7 @@ namespace AarauCoinMVC.Controllers
 
                 if (user == null)
                     throw new LoginFailedException();
-                
+
                 if (user.Coins == null)
                     TempData["Coins"] = "No coins registered";
                 else

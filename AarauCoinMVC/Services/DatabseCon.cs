@@ -1,7 +1,4 @@
-﻿using AarauCoinMVC.Controllers;
-using AarauCoinMVC.Models;
-using Microsoft.AspNetCore.Http;
-using System.Linq.Expressions;
+﻿using AarauCoinMVC.Models;
 
 namespace AarauCoinMVC.Services
 {
@@ -85,16 +82,15 @@ namespace AarauCoinMVC.Services
             }
         }
 
-
         public AccountViewModel? GetUserInformation(string username)
         {
-              AccountViewModel? list = _context.Users.
-                    Select(e => new AccountViewModel
-                    {
-                        Username = e.Username,
-                        Level = e.LevelId.LevelName,
-                        Coins = _context.Coins.Where(s => s.UserId.Username == username).FirstOrDefault(),
-                    }).FirstOrDefault(s => s.Username.ToLower() == username.ToLower());
+            AccountViewModel? list = _context.Users.
+                  Select(e => new AccountViewModel
+                  {
+                      Username = e.Username,
+                      Level = e.LevelId.LevelName,
+                      Coins = _context.Coins.Where(s => s.UserId.Username == username).FirstOrDefault(),
+                  }).FirstOrDefault(s => s.Username.ToLower() == username.ToLower());
             return list;
         }
 
@@ -146,6 +142,5 @@ namespace AarauCoinMVC.Services
 
             return list;
         }
-
     }
 }
