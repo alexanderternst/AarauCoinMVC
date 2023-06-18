@@ -2,7 +2,7 @@
 {
     public class LogViewModel
     {
-        public string? LogDate { get; set; }
+        public DateTime LogDate { get; set; }
         public string? LogMessage { get; set; }
     }
 }

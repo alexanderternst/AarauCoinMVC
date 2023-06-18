@@ -29,7 +29,7 @@ namespace AarauCoinMVC.Controllers
             }
         }
 
-        public IActionResult ShowLog(DateTime date, string searchContent)
+        public IActionResult ShowLog(DateTime date, string searchContent, string picker)
         {
             if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
             {
@@ -42,7 +42,10 @@ namespace AarauCoinMVC.Controllers
                             s => string.IsNullOrWhiteSpace(searchContent) ||
                             s.LogMessage.ToLower().Contains(searchContent.ToLower().Trim())
                                 );
-                    logs = filteredLogs.ToList();
+                    if (picker == "Newest")
+                        logs = filteredLogs.OrderByDescending(s => s.LogDate).ToList();
+                    if (picker == "Oldest")
+                        logs = filteredLogs.OrderBy(s => s.LogDate).ToList();
 
                     _logger.LogInformation("Logs successfully loaded");
                     return View("Log", logs);
