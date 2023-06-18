@@ -2,7 +2,7 @@
 {
     public class Coin
     {
-        public string Id { get; set; }
+        public int Id { get; set; }
         public User UserId { get; set; }
 
         public double Coins { get; set; }
