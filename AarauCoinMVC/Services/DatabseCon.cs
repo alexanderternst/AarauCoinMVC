@@ -1,19 +1,26 @@
-﻿using AarauCoinMVC.Models;
+﻿using AarauCoinMVC.Controllers;
+using AarauCoinMVC.Models;
 using Microsoft.AspNetCore.Http;
+using System.Linq.Expressions;
 
 namespace AarauCoinMVC.Services
 {
     public class DatabseCon : IDatabaseCon
     {
         private readonly AarauCoinContext _context;
+        private readonly ILogger<DatabseCon> _logger;
 
-        public DatabseCon(AarauCoinContext context)
+        public DatabseCon(AarauCoinContext context, ILogger<DatabseCon> logger)
         {
             _context = context;
+            _logger = logger;
+            InsertUser();
+        }
 
+        private void InsertUser()
+        {
             List<User> user = _context.Users.ToList();
             List<Level> lev = _context.Levels.ToList();
-
             if (user.Count == 0 && lev.Count == 0)
             {
                 _context.Levels.Add(new Level
@@ -45,20 +52,37 @@ namespace AarauCoinMVC.Services
                     LevelId = _context.Levels.FirstOrDefault(s => s.LevelName == "Admin")
                 });
                 _context.SaveChanges();
+
+                _context.Coins.Add(new Coin
+                {
+                    Id = 1,
+                    Coins = 1000,
+                    UserId = _context.Users.FirstOrDefault(m => m.Username == "Hans")
+                });
+                _context.SaveChanges();
             }
         }
 
         public UserLoginDTO? GetUser(string username)
         {
-            UserLoginDTO? list = _context.Users.
-                    Select(e => new UserLoginDTO
+            try
+            {
+                UserLoginDTO? list = _context.Users
+                    .Select(e => new UserLoginDTO
                     {
                         Id = e.UserId,
                         Username = e.Username,
                         Password = e.Password,
-                        Level = e.LevelId.LevelName
+                        Level = e.LevelId.LevelName,
+                        Coins = _context.Coins.Where(s => s.UserId.Username == username).FirstOrDefault()
                     }).FirstOrDefault(s => s.Username.ToLower() == username.ToLower());
-            return list;
+                return list;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Unknown Exception" + ex.Message);
+                return null;
+            }
         }
 
 
@@ -79,14 +103,23 @@ namespace AarauCoinMVC.Services
             string fileName = $"../logs/webapi-{date}.log";
 
             if (!File.Exists(fileName))
-                throw new FileNotFoundException("File not found", fileName);
+                throw new FileNotFoundException("Datei nicht gefunden", fileName);
 
             string fileContent = string.Empty;
-            using (var fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+            try
             {
-                StreamReader streamReader = new StreamReader(fileStream);
-                fileContent = streamReader.ReadToEnd();
+                using (var fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    StreamReader streamReader = new StreamReader(fileStream);
+                    fileContent = streamReader.ReadToEnd();
+                }
             }
+            catch (Exception ex)
+            {
+                _logger.LogError("Unknown Exception" + ex.Message);
+                return null;
+            }
+
             List<LogViewModel> list = new List<LogViewModel>();
 
             foreach (var line in fileContent.Split("\n"))
@@ -96,7 +129,7 @@ namespace AarauCoinMVC.Services
                 if (data.Length < 2)
                     continue;
 
-                string datum = data[0].Remove(0,1).Remove(31, 4);
+                string datum = data[0].Remove(0, 1).Remove(31, 4);
                 DateTime parsedDatum;
                 string message = data[1];
 
@@ -110,7 +143,9 @@ namespace AarauCoinMVC.Services
                     continue;
                 }
             }
+
             return list;
         }
+
     }
 }

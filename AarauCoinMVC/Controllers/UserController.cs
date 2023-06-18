@@ -1,4 +1,4 @@
-﻿using AarauCoinMVC.Models;
+using AarauCoinMVC.Models;
 using AarauCoinMVC.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
@@ -35,7 +35,9 @@ namespace AarauCoinMVC.Controllers
                 if (user == null)
                     throw new LoginFailedException();
 
-                if (loginData.Username.ToLower() == user.Username.ToLower() && loginData.Password == user.Password)
+                TempData["Coins"] = list.Coins.Coins.ToString();
+
+                if (loginData.Username.ToLower() == list.Username.ToLower() && loginData.Password == list.Password)
                 {
                     CreateLoginCookie(loginData, user.Level);
                     _logger.LogInformation($"User {loginData.Username} logged in");
