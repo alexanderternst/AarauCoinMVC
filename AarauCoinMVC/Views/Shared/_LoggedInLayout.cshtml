@@ -1,4 +1,4 @@
-﻿@using AarauCoinMVC.Controllers
+@using AarauCoinMVC.Controllers
 @using Microsoft.Build.Logging
 @using System.Security.Claims;
 <!DOCTYPE html>
@@ -26,7 +26,7 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="Logout">Logout</a>                               
+                            <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="Account">Account</a>     
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" style="color: darkblue">Coins: @TempData["Coins"]</a>
