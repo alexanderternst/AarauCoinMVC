@@ -13,7 +13,7 @@
     </div>
 }
 
-<select class="form-select topmargin">
+@*<select class="form-select topmargin">
     @{
         string[] fileArray = Directory.GetFiles(@"..\logs\", "*.log");
         fileArray = fileArray.Take(fileArray.Length - 1).ToArray();
@@ -22,7 +22,7 @@
             <option value="@file">@file</option>
         }
     }
-</select>
+</select>*@
 
 <form method="post" asp-controller="LogEntry" asp-action="ShowLog">
     <div class="row">
@@ -33,16 +33,16 @@
             <input type="text" class="form-control" name="searchContent" placeholder="Search term" />
         </div>
         <div class="col-md-4 topmargin">
-            <button class="btn btn-primary" type="submit">Search</button>
+            <select name="picker" class="form-select">
+                <option value="Newest">Newest first</option>
+                <option value="Oldest">Oldest first</option>
+            </select>
         </div>
     </div>
 
     <div class="row">
-        <div class="col-md-12">
-            <select name="picker" class="form-select topmargin">
-                <option value="Newest">Newest</option>
-                <option value="Oldest">Oldest</option>
-            </select>
+        <div class="col-md-4 topmargin">
+            <button class="btn btn-primary" type="submit">Search</button>
         </div>
     </div>
 </form>
