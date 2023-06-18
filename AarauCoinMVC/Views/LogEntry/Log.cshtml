@@ -13,23 +13,40 @@
     </div>
 }
 
+<select class="form-select topmargin">
+    @{
+        string[] fileArray = Directory.GetFiles(@"..\logs\", "*.log");
+        fileArray = fileArray.Take(fileArray.Length - 1).ToArray();
+        foreach (string file in fileArray)
+        {
+            <option value="@file">@file</option>
+        }
+    }
+</select>
+
 <form method="post" asp-controller="LogEntry" asp-action="ShowLog">
     <div class="row">
+        <div class="col-md-4 topmargin">
+            <input type="date" class="form-control datepicker" name="date" />
+        </div>
+        <div class="col-md-4 topmargin">
+            <input type="text" class="form-control" name="searchContent" placeholder="Search term" />
+        </div>
+        <div class="col-md-4 topmargin">
+            <button class="btn btn-primary" type="submit">Search</button>
+        </div>
+    </div>
+
+    <div class="row">
         <div class="col-md-12">
-            <div class="row">
-                <div class="col-md-4">
-                    <input type="date" class="form-control" name="date"/>
-                </div>
-                <div class="col-md-4">
-                    <input type="text" class="form-control" name="searchContent" placeholder="Search term" />
-                </div>
-                <div class="col-md-4">
-                    <button class="btn btn-primary" type="submit">Search</button>
-                </div>
-            </div>
+            <select name="picker" class="form-select topmargin">
+                <option value="Newest">Newest</option>
+                <option value="Oldest">Oldest</option>
+            </select>
         </div>
     </div>
 </form>
+
 
 @{
     if (Model != null)

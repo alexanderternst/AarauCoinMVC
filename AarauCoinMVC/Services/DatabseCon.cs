@@ -1,4 +1,5 @@
 ﻿using AarauCoinMVC.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace AarauCoinMVC.Services
 {
@@ -82,11 +83,19 @@ namespace AarauCoinMVC.Services
                 if (data.Length < 2)
                     continue;
 
-                string datum = data[0];
+                string datum = data[0].Remove(0,1).Remove(31, 4);
+                DateTime parsedDatum;
                 string message = data[1];
-                LogViewModel log = new LogViewModel() { LogDate = datum, LogMessage = message };
 
-                list.Add(log);
+                if (DateTime.TryParse(datum, out parsedDatum))
+                {
+                    LogViewModel log = new LogViewModel() { LogDate = parsedDatum, LogMessage = message };
+                    list.Add(log);
+                }
+                else
+                {
+                    continue;
+                }
             }
             return list;
         }

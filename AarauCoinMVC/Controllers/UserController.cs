@@ -31,8 +31,7 @@ namespace AarauCoinMVC.Controllers
                     throw new Exception("Username or password is null");
 
                 var list = _context.GetUser(loginData.Username);
-                // Need this code to prevent null reference exception
-                // when the user is not found in the database list is null
+
                 if (list == null)
                     throw new LoginFailedException();
 
