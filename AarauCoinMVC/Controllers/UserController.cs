@@ -34,10 +34,13 @@ namespace AarauCoinMVC.Controllers
 
                 if (user == null)
                     throw new LoginFailedException();
+                
+                if (user.Coins == null)
+                    TempData["Coins"] = "No coins registered";
+                else
+                    TempData["Coins"] = user.Coins.Coins.ToString();
 
-                TempData["Coins"] = list.Coins.Coins.ToString();
-
-                if (loginData.Username.ToLower() == list.Username.ToLower() && loginData.Password == list.Password)
+                if (loginData.Username.ToLower() == user.Username.ToLower() && loginData.Password == user.Password)
                 {
                     CreateLoginCookie(loginData, user.Level);
                     _logger.LogInformation($"User {loginData.Username} logged in");
