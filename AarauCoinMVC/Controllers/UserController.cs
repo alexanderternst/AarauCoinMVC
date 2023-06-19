@@ -27,6 +27,8 @@ namespace AarauCoinMVC.Controllers
         {
             try
             {
+                if (loginData == null)
+                    throw new Exception("Username or password is null");
                 if (loginData.Username == null || loginData.Password == null)
                     throw new Exception("Username or password is null");
 

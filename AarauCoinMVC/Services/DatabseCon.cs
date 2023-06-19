@@ -128,10 +128,12 @@ namespace AarauCoinMVC.Services
                 string datum = data[0].Remove(0, 1).Remove(31, 4);
                 DateTime parsedDatum;
                 string message = data[1];
+                string type = data[0].Remove(0, 33);
+
 
                 if (DateTime.TryParse(datum, out parsedDatum))
                 {
-                    LogViewModel log = new LogViewModel() { LogDate = parsedDatum, LogMessage = message };
+                    LogViewModel log = new LogViewModel() { LogDate = parsedDatum, TypeOfLog = type, LogMessage = message };
                     list.Add(log);
                 }
                 else
