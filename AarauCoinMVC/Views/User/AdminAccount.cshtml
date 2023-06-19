@@ -15,7 +15,7 @@
 
 <div class="card">
     <div class="card-body">
-       <div class="row">
+        <div class="row">
             <div class="col">
                 <h2>Account details</h2>
 
@@ -67,3 +67,32 @@
         </div>
     </div>
 }
+
+<div class="card topmargin">
+    <div class="card-body">
+        <div class="row">
+            <h2>Create User</h2>
+            <form method="post" asp-action="CreateUser" asp-controller="User">
+                <div class="col-md-8 topmargin">
+                    <input type="text" name="username" required="required" class="form-control" placeholder="Enter username" />
+                </div>
+                <div class="col-md-8 topmargin">
+                    <input type="password" name="password" required="required" class="form-control" placeholder="Enter password" />
+                </div>
+                <div class="col-md-8 topmargin">
+                    <input type="number" name="coins" required="required" class="form-control" placeholder="Enter amount of coins" />
+                </div>
+                <div class="col-md-8 topmargin">
+                    <select name="level" class="form-select topmargin">
+                        <option value="Admin">Admin account</option>
+                        <option value="User">Regular account</option>
+                    </select>
+                </div>
+                <div class="col-md-8 topmargin">
+                    <button type="submit" class="btn btn-primary">Create user</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+

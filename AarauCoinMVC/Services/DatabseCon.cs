@@ -52,9 +52,15 @@ namespace AarauCoinMVC.Services
 
                 _context.Coins.Add(new Coin
                 {
-                    Id = 1,
                     Coins = 1000,
                     UserId = _context.Users.FirstOrDefault(m => m.Username == "Hans")
+                });
+                _context.SaveChanges();
+
+                _context.Coins.Add(new Coin
+                {
+                    Coins = 1000,
+                    UserId = _context.Users.FirstOrDefault(m => m.Username == "Alex")
                 });
                 _context.SaveChanges();
             }
@@ -82,6 +88,11 @@ namespace AarauCoinMVC.Services
             }
         }
 
+        public List<string> GetUserNames()
+        {
+            return _context.Users.Select(s => s.Username).ToList();
+        }
+
         public AccountViewModel? GetUserInformation(string username)
         {
             AccountViewModel? list = _context.Users.
@@ -92,6 +103,44 @@ namespace AarauCoinMVC.Services
                       Coins = _context.Coins.Where(s => s.UserId.Username == username).FirstOrDefault(),
                   }).FirstOrDefault(s => s.Username.ToLower() == username.ToLower());
             return list;
+        }
+
+        public void SendMoney(string sender, string receiver, double amount)
+        {
+            var UserAccountExist = _context.Coins.Where(s => s.UserId.Username == receiver).FirstOrDefault();
+            if (UserAccountExist == null)
+                throw new Exception("User has no account");
+
+            double amountLeft = _context.Coins.First(s => s.UserId.Username == sender).Coins -= amount;
+            if (amountLeft < 0)
+                throw new Exception("Not enough coins");
+
+            _context.Coins.Where(s => s.UserId.Username == sender).First().Coins -= amount;
+            _context.Coins.Where(s => s.UserId.Username == receiver).First().Coins += amount;
+            _context.SaveChanges();
+
+        }
+
+        public void CreateUser(string username, string password, string level, double coins)
+        {
+            _context.Users.Add(
+                new User
+                {
+                    Username = username,
+                    Password = password,
+                    LevelId = _context.Levels.First(s => s.LevelName == level)
+                });
+            _context.SaveChanges();
+            
+            _context.Coins.Add(
+                 new Coin
+                 {
+                    Coins = coins,
+                    UserId = _context.Users.First(s => s.Username == username)
+                });
+            _context.SaveChanges();
+
+            var list = _context.Coins.ToList();
         }
 
         public List<LogViewModel> ReadLog(string date)

@@ -2,6 +2,7 @@ using AarauCoinMVC.Models;
 using AarauCoinMVC.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq.Expressions;
 using System.Security.Claims;
 
 namespace AarauCoinMVC.Controllers
@@ -37,10 +38,10 @@ namespace AarauCoinMVC.Controllers
                 if (user == null)
                     throw new LoginFailedException();
 
-                if (user.Coins == null)
-                    TempData["Coins"] = "No coins registered";
-                else
-                    TempData["Coins"] = user.Coins.Coins.ToString();
+                //if (user.Coins == null)
+                //    TempData["Coins"] = "No coins registered";
+                //else
+                //    TempData["Coins"] = user.Coins.Coins.ToString();
 
                 if (loginData.Username.ToLower() == user.Username.ToLower() && loginData.Password == user.Password)
                 {
@@ -85,14 +86,11 @@ namespace AarauCoinMVC.Controllers
             };
 
             HttpContext.SignInAsync("AarauCoin-AuthenticationScheme", new ClaimsPrincipal(claimsIdentity), authProperties);
+            _logger.LogInformation($"Authentification cookie for user {loginData.Username} was created");
         }
 
         public IActionResult Logout()
         {
-            //var a = HttpContext.User.Claims.ToList();
-            //var c = HttpContext.User.Claims.FirstOrDefault(s => s.Type == ClaimTypes.Role);
-            //var b = User.FindFirst(ClaimTypes.Role).Value.ToString();
-
             HttpContext.SignOutAsync("AarauCoin-AuthenticationScheme");
             return RedirectToAction("Index", "Home");
         }
@@ -101,9 +99,89 @@ namespace AarauCoinMVC.Controllers
         {
             if (User.Identity.IsAuthenticated)
             {
-                var userInformation = _context.GetUserInformation(User.Identity.Name);
-                _logger.LogInformation($"User {User.Identity.Name} loaded account page");
-                return View(userInformation);
+                try 
+                {
+                    AccountViewModel? userInformation = _context.GetUserInformation(User.Identity.Name);
+                    
+                    List<string> users = _context.GetUserNames();
+                    if (users != null)
+                    {
+                        users.Remove(User.Identity.Name.ToString());
+                        userInformation.Users = users.ToArray();
+                    }
+
+                    _logger.LogInformation($"User {User.Identity.Name} loaded account page");
+
+                    if (User.IsInRole("Admin"))
+                    {
+                        return View("AdminAccount", userInformation);
+                    }
+                    else
+                    {
+                        return View("Account", userInformation);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("Unknown Exception" + ex.Message);
+                    ViewBag.ErrorMessage = "Unknown Exception";
+                    ViewBag.ErrorType = "danger";
+                    return RedirectToAction("Account", "User");
+                }
+            }
+            else
+            {
+                return RedirectToAction("Login", "User");
+            }
+        }
+
+        public IActionResult SendMoney(string reciever, int amount)
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                try
+                {
+                    _context.SendMoney(User.Identity.Name, reciever, amount);
+                    _logger.LogInformation($"User {User.Identity.Name} sent {amount} coins to {reciever}");
+                    return RedirectToAction("Account", "User");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("Unknown Exception" + ex.Message);
+                    ViewBag.ErrorMessage = "Unknown Exception";
+                    ViewBag.ErrorType = "danger";
+                    // return View wont work because i need user data again, but cant use redirect because i need to show error message
+                    return RedirectToAction("Account", "User");
+                    //return View("Account");
+
+                }
+            }
+            else
+            {
+                return RedirectToAction("Login", "User");
+            }
+
+        }
+
+        public IActionResult CreateUser(string username, string password, string level, double coins)
+        {
+            if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+            {
+                try
+                {
+                    _context.CreateUser(username, password, level, coins);
+                    return RedirectToAction("Account", "User");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("Unknown Exception" + ex.Message);
+                    ViewBag.ErrorMessage = "Unknown Exception";
+                    ViewBag.ErrorType = "danger";
+
+                    // return View wont work because i need user data again, but cant use redirect because i need to show error message
+                    return RedirectToAction("Account", "User");
+                    //return View("Account");
+                }
             }
             else
             {
