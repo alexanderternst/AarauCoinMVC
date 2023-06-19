@@ -2,7 +2,6 @@ using AarauCoinMVC.Models;
 using AarauCoinMVC.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq.Expressions;
 using System.Security.Claims;
 
 namespace AarauCoinMVC.Controllers
@@ -99,10 +98,10 @@ namespace AarauCoinMVC.Controllers
         {
             if (User.Identity.IsAuthenticated)
             {
-                try 
+                try
                 {
                     AccountViewModel? userInformation = _context.GetUserInformation(User.Identity.Name);
-                    
+
                     List<string> users = _context.GetUserNames();
                     if (users != null)
                     {
@@ -153,14 +152,12 @@ namespace AarauCoinMVC.Controllers
                     // return View wont work because i need user data again, but cant use redirect because i need to show error message
                     return RedirectToAction("Account", "User");
                     //return View("Account");
-
                 }
             }
             else
             {
                 return RedirectToAction("Login", "User");
             }
-
         }
 
         public IActionResult CreateUser(string username, string password, string level, double coins)

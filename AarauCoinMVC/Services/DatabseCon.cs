@@ -118,7 +118,6 @@ namespace AarauCoinMVC.Services
             _context.Coins.Where(s => s.UserId.Username == sender).First().Coins -= amount;
             _context.Coins.Where(s => s.UserId.Username == receiver).First().Coins += amount;
             _context.SaveChanges();
-
         }
 
         public void CreateUser(string username, string password, string level, double coins)
@@ -131,13 +130,13 @@ namespace AarauCoinMVC.Services
                     LevelId = _context.Levels.First(s => s.LevelName == level)
                 });
             _context.SaveChanges();
-            
+
             _context.Coins.Add(
                  new Coin
                  {
-                    Coins = coins,
-                    UserId = _context.Users.First(s => s.Username == username)
-                });
+                     Coins = coins,
+                     UserId = _context.Users.First(s => s.Username == username)
+                 });
             _context.SaveChanges();
 
             var list = _context.Coins.ToList();
@@ -178,7 +177,6 @@ namespace AarauCoinMVC.Services
                 DateTime parsedDatum;
                 string message = data[1];
                 string type = data[0].Remove(0, 33);
-
 
                 if (DateTime.TryParse(datum, out parsedDatum))
                 {
