@@ -16,7 +16,7 @@ namespace AarauCoinMVC.Services
             InsertUser();
         }
 
-        #region Inser data
+        #region Insert data
         private void InsertUser()
         {
             List<User> user = _context.Users.ToList();
