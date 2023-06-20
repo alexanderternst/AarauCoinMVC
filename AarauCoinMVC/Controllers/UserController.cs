@@ -151,7 +151,7 @@ namespace AarauCoinMVC.Controllers
             }
         }
 
-        private async Task<AccountViewModel> ShowAccount()
+        private async Task<AccountViewModel?> ShowAccount()
         {
             if (TempData.ContainsKey("ErrorMessage"))
             {
