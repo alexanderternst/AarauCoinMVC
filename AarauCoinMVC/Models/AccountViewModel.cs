@@ -7,5 +7,7 @@
         public Coin? Coins { get; set; }
 
         public string[] Users { get; set; }
+
+        public List<AdminAccountViewModel> AllAccounts { get; set; }
     }
 }

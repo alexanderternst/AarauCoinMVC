@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using NuGet.Configuration;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 
 namespace AarauCoinMVC.Controllers
 {
@@ -116,16 +117,8 @@ namespace AarauCoinMVC.Controllers
                         userInformation.Users = users.ToArray();
                     }
 
-                    if (User.IsInRole("Admin"))
-                    {
-                        _logger.LogInformation($"User {User.Identity.Name} loaded admin account page");
-                        return View("AdminAccount", userInformation);
-                    }
-                    else
-                    {
-                        _logger.LogInformation($"User {User.Identity.Name} loaded account page");
-                        return View("Account", userInformation);
-                    }
+                    _logger.LogInformation($"User {User.Identity.Name} loaded account page");
+                    return View("Account", userInformation);
                 }
                 catch (Exception ex)
                 {
@@ -133,6 +126,75 @@ namespace AarauCoinMVC.Controllers
                     ViewBag.ErrorMessage = "Unknown Exception";
                     ViewBag.ErrorType = "danger";
                     return RedirectToAction("Account", "User");
+                }
+            }
+            else
+            {
+                return RedirectToAction("Login", "User");
+            }
+        }
+
+        public IActionResult AdminAccount()
+        {
+            if (User.Identity.IsAuthenticated || User.IsInRole("Admin"))
+            {
+                try
+                {
+                    if (TempData.ContainsKey("ErrorMessage"))
+                    {
+                        ViewBag.ErrorMessage = TempData["ErrorMessage"];
+                        ViewBag.ErrorType = TempData["ErrorType"];
+                    }
+
+                    AccountViewModel? userInformation = _context.GetUserInformation(User.Identity.Name);
+
+                    List<string> users = _context.GetUserNames();
+                    if (users != null)
+                    {
+                        users.Remove(User.Identity.Name.ToString());
+                        userInformation.Users = users.ToArray();
+                    }
+                    List<AdminAccountViewModel> allUsers = _context.GetAllUsers();
+                    if (allUsers != null)
+                    {
+                        userInformation.AllAccounts = allUsers;
+                    }
+
+                    _logger.LogInformation($"User {User.Identity.Name} loaded admin account page");
+                    return View("AdminAccount", userInformation);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("Unknown Exception" + ex.Message);
+                    ViewBag.ErrorMessage = "Unknown Exception";
+                    ViewBag.ErrorType = "danger";
+                    return RedirectToAction("Account", "User");
+                }
+            }
+            else
+            {
+                return RedirectToAction("Login", "User");
+            }
+        }
+
+        public IActionResult ModifyUser(string username, double coins)
+        {
+            if (User.Identity.IsAuthenticated || User.IsInRole("Admin"))
+            {
+                try
+                {
+                    if (coins <= 0)
+                        throw new Exception("Amount must be greater than 0");
+
+                    _context.ModifyUser(username, coins);
+                    return RedirectToAction("AdminAccount", "User");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("Unknown Exception" + ex.Message);
+                    ViewBag.ErrorMessage = "Unknown Exception";
+                    ViewBag.ErrorType = "danger";
+                    return RedirectToAction("AdminAccount", "User");
                 }
             }
             else
@@ -152,7 +214,11 @@ namespace AarauCoinMVC.Controllers
 
                     _context.SendMoney(User.Identity.Name, reciever, amount);
                     _logger.LogInformation($"User {User.Identity.Name} sent {amount} coins to {reciever}");
-                    return RedirectToAction("Account", "User");
+
+                    if (User.IsInRole("Admin"))
+                        return RedirectToAction("AdminAccount", "User");
+                    else
+                        return RedirectToAction("Account", "User");
                 }
                 catch (Exception ex)
                 {
@@ -160,7 +226,10 @@ namespace AarauCoinMVC.Controllers
                     TempData["ErrorMessage"] = "Unknown exception";
                     TempData["ErrorType"] = "danger";
 
-                    return RedirectToAction("Account", "User");
+                    if (User.IsInRole("Admin"))
+                        return RedirectToAction("AdminAccount", "User");
+                    else
+                        return RedirectToAction("Account", "User");
                 }
             }
             else
@@ -175,15 +244,20 @@ namespace AarauCoinMVC.Controllers
             {
                 try
                 {
+                    string regex = "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,16}$";
                     if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(level))
                         throw new Exception("Username, Password or level is null or empty");
                     if (coins <= 0)
                         throw new Exception("Coins must be greater than 0");
 
+                    if (!Regex.IsMatch(password, regex))
+                        throw new Exception("Password is invalid");
+
+
                     _context.CreateUser(username, password, level, coins);
                     _logger.LogInformation($"User with username {username} created");
 
-                    return RedirectToAction("Account", "User");
+                    return RedirectToAction("AdminAccount", "User");
                 }
                 catch (Exception ex)
                 {
@@ -191,7 +265,7 @@ namespace AarauCoinMVC.Controllers
                     TempData["ErrorMessage"] = "Unknown exception";
                     TempData["ErrorType"] = "danger";
 
-                    return RedirectToAction("Account", "User");
+                    return RedirectToAction("AdminAccount", "User");
                 }
             }
             else

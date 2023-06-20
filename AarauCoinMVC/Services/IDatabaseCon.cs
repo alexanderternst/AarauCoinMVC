@@ -12,6 +12,10 @@ namespace AarauCoinMVC.Services
 
         List<string> GetUserNames();
 
+        List<AdminAccountViewModel> GetAllUsers();
+
+        void ModifyUser(string username, double coins);
+
         void SendMoney(string sender, string receiver, double amount);
 
         void CreateUser(string username, string password, string level, double coins);
