@@ -43,7 +43,7 @@ namespace AarauCoinMVC.Controllers
 
                 if (loginData.Username.ToLower() == user.Username.ToLower() && loginData.Password == user.Password)
                 {
-                    CreateLoginCookie(loginData, user.Level);
+                    await CreateLoginCookie(loginData, user.Level);
                     _logger.LogInformation($"User {loginData.Username} logged in");
                     return RedirectToAction("Index", "Home");
                 }
