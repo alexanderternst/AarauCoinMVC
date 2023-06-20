@@ -2,6 +2,7 @@ using AarauCoinMVC.Models;
 using AarauCoinMVC.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using NuGet.Configuration;
 using System.Security.Claims;
 
 namespace AarauCoinMVC.Controllers
@@ -28,9 +29,9 @@ namespace AarauCoinMVC.Controllers
             try
             {
                 if (loginData == null)
-                    throw new Exception("Username or password is null");
-                if (loginData.Username == null || loginData.Password == null)
-                    throw new Exception("Username or password is null");
+                    throw new Exception("Login data is invalid");
+                if (string.IsNullOrEmpty(loginData.Username) || string.IsNullOrEmpty(loginData.Username))
+                    throw new Exception("Username or password are empty");
 
                 var user = _context.GetUser(loginData.Username);
 
@@ -100,6 +101,12 @@ namespace AarauCoinMVC.Controllers
             {
                 try
                 {
+                    if (TempData.ContainsKey("ErrorMessage"))
+                    {
+                        ViewBag.ErrorMessage = TempData["ErrorMessage"];
+                        ViewBag.ErrorType = TempData["ErrorType"];
+                    }
+
                     AccountViewModel? userInformation = _context.GetUserInformation(User.Identity.Name);
 
                     List<string> users = _context.GetUserNames();
@@ -109,14 +116,14 @@ namespace AarauCoinMVC.Controllers
                         userInformation.Users = users.ToArray();
                     }
 
-                    _logger.LogInformation($"User {User.Identity.Name} loaded account page");
-
                     if (User.IsInRole("Admin"))
                     {
+                        _logger.LogInformation($"User {User.Identity.Name} loaded admin account page");
                         return View("AdminAccount", userInformation);
                     }
                     else
                     {
+                        _logger.LogInformation($"User {User.Identity.Name} loaded account page");
                         return View("Account", userInformation);
                     }
                 }
@@ -140,6 +147,9 @@ namespace AarauCoinMVC.Controllers
             {
                 try
                 {
+                    if (amount <= 0)
+                        throw new Exception("Amount must be greater than 0");
+
                     _context.SendMoney(User.Identity.Name, reciever, amount);
                     _logger.LogInformation($"User {User.Identity.Name} sent {amount} coins to {reciever}");
                     return RedirectToAction("Account", "User");
@@ -147,11 +157,10 @@ namespace AarauCoinMVC.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogError("Unknown Exception" + ex.Message);
-                    ViewBag.ErrorMessage = "Unknown Exception";
-                    ViewBag.ErrorType = "danger";
-                    // return View wont work because i need user data again, but cant use redirect because i need to show error message
+                    TempData["ErrorMessage"] = "Unknown exception";
+                    TempData["ErrorType"] = "danger";
+
                     return RedirectToAction("Account", "User");
-                    //return View("Account");
                 }
             }
             else
@@ -166,18 +175,23 @@ namespace AarauCoinMVC.Controllers
             {
                 try
                 {
+                    if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(level))
+                        throw new Exception("Username, Password or level is null or empty");
+                    if (coins <= 0)
+                        throw new Exception("Coins must be greater than 0");
+
                     _context.CreateUser(username, password, level, coins);
+                    _logger.LogInformation($"User with username {username} created");
+
                     return RedirectToAction("Account", "User");
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError("Unknown Exception" + ex.Message);
-                    ViewBag.ErrorMessage = "Unknown Exception";
-                    ViewBag.ErrorType = "danger";
+                    TempData["ErrorMessage"] = "Unknown exception";
+                    TempData["ErrorType"] = "danger";
 
-                    // return View wont work because i need user data again, but cant use redirect because i need to show error message
                     return RedirectToAction("Account", "User");
-                    //return View("Account");
                 }
             }
             else

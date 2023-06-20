@@ -5,7 +5,7 @@
 
 <h1>Account</h1>
 
-@if (ViewBag.ErrorMessage != null)
+@if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
 {
     <div class="alert alert-@ViewBag.ErrorType alert-dismissible" role="alert">
         <div>@ViewBag.ErrorMessage</div>
@@ -13,7 +13,7 @@
     </div>
 }
 
-<div class="card">
+<div class="card topmargin">
     <div class="card-body">
         <div class="row">
             <div class="col">
@@ -47,7 +47,7 @@
                 <h2>Transfer Money</h2>
                 <form method="post" asp-action="SendMoney" asp-controller="User">
                     <div class="col-md-8 topmargin">
-                        <input type="number" name="amount" pattern="[0-9]+" required="required" class="form-control" placeholder="Enter Money" />
+                        <input type="number" name="amount" pattern="[0-9]+" min="1" required="required" class="form-control" placeholder="Enter Money" />
                     </div>
                     <div class="col-md-8 topmargin">
                         <select name="reciever" class="form-select topmargin">

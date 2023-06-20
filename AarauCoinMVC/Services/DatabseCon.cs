@@ -107,17 +107,23 @@ namespace AarauCoinMVC.Services
 
         public void SendMoney(string sender, string receiver, double amount)
         {
-            var UserAccountExist = _context.Coins.Where(s => s.UserId.Username == receiver).FirstOrDefault();
-            if (UserAccountExist == null)
-                throw new Exception("User has no account");
+            var senderAccount = _context.Coins.FirstOrDefault(s => s.UserId.Username == sender);
+            var receiverAccount = _context.Coins.FirstOrDefault(s => s.UserId.Username == receiver);
 
-            double amountLeft = _context.Coins.First(s => s.UserId.Username == sender).Coins -= amount;
-            if (amountLeft < 0)
+            if (senderAccount == null)
+                throw new Exception("Sender has no account");
+
+            if (receiverAccount == null)
+                throw new Exception("Receiver has no account");
+
+            if (senderAccount.Coins < amount)
                 throw new Exception("Not enough coins");
 
-            _context.Coins.Where(s => s.UserId.Username == sender).First().Coins -= amount;
-            _context.Coins.Where(s => s.UserId.Username == receiver).First().Coins += amount;
+            senderAccount.Coins -= amount;
+            receiverAccount.Coins += amount;
+
             _context.SaveChanges();
+
         }
 
         public void CreateUser(string username, string password, string level, double coins)
@@ -138,8 +144,6 @@ namespace AarauCoinMVC.Services
                      UserId = _context.Users.First(s => s.Username == username)
                  });
             _context.SaveChanges();
-
-            var list = _context.Coins.ToList();
         }
 
         public List<LogViewModel> ReadLog(string date)
@@ -150,19 +154,12 @@ namespace AarauCoinMVC.Services
                 throw new FileNotFoundException("Datei nicht gefunden", fileName);
 
             string fileContent = string.Empty;
-            try
+            using (var fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
-                using (var fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read))
-                {
-                    StreamReader streamReader = new StreamReader(fileStream);
-                    fileContent = streamReader.ReadToEnd();
-                }
+                StreamReader streamReader = new StreamReader(fileStream);
+                fileContent = streamReader.ReadToEnd();
             }
-            catch (Exception ex)
-            {
-                _logger.LogError("Unknown Exception" + ex.Message);
-                return null;
-            }
+
 
             List<LogViewModel> list = new List<LogViewModel>();
 
