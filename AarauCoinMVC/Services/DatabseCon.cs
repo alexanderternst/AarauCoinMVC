@@ -9,6 +9,11 @@ namespace AarauCoinMVC.Services
         private readonly AarauCoinContext _context;
         private readonly ILogger<DatabseCon> _logger;
 
+        /// <summary>
+        /// Konstruktor für die Datenbankverbindung und das Logging
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="logger"></param>
         public DatabseCon(AarauCoinContext context, ILogger<DatabseCon> logger)
         {
             _context = context;
@@ -18,6 +23,9 @@ namespace AarauCoinMVC.Services
 
         #region Insert data
 
+        /// <summary>
+        /// Methode für das Einfügen von Daten in die In-Memory Datenbank
+        /// </summary>
         private void InsertUser()
         {
             List<User> user = _context.Users.ToList();
@@ -74,6 +82,11 @@ namespace AarauCoinMVC.Services
 
         #region Get user data
 
+        /// <summary>
+        /// Methode für das Abrufen der Benutzerdaten mit praktisch allen Informationen
+        /// </summary>
+        /// <param name="username"></param>
+        /// <returns></returns>
         public async Task<UserLoginDTO?> GetUser(string username)
         {
             UserLoginDTO? user = await _context.Users
@@ -88,11 +101,20 @@ namespace AarauCoinMVC.Services
             return user;
         }
 
+        /// <summary>
+        /// Methode für das Abrufen aller Benutzernamen
+        /// </summary>
+        /// <returns></returns>
         public async Task<List<string>> GetUserNames()
         {
             return await _context.Users.Select(s => s.Username).ToListAsync();
         }
 
+        /// <summary>
+        /// Methode für das Abrufen der Benutzerdaten mit den wichtigsten Informationen
+        /// </summary>
+        /// <param name="username"></param>
+        /// <returns></returns>
         public async Task<AccountViewModel?> GetUserInformation(string username)
         {
             AccountViewModel? user = await _context.Users.
@@ -105,6 +127,10 @@ namespace AarauCoinMVC.Services
             return user;
         }
 
+        /// <summary>
+        /// Methode für das Abrufen aller Benutzernamen und deren Coins
+        /// </summary>
+        /// <returns></returns>
         public async Task<List<AdminAccountViewModel>> GetAllUsers()
         {
             return await _context.Users.Select(e => new AdminAccountViewModel
@@ -118,6 +144,14 @@ namespace AarauCoinMVC.Services
 
         #region Set user data
 
+        /// <summary>
+        /// Methode für das Erstellen eines neuen Benutzers mit Coins account
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <param name="level"></param>
+        /// <param name="coins"></param>
+        /// <returns></returns>
         public async Task CreateUser(string username, string password, string level, double coins)
         {
             await _context.Users.AddAsync(
@@ -138,8 +172,20 @@ namespace AarauCoinMVC.Services
             await _context.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Methode für das hinzufügen von Coins zu einem Benutzer durch den Admin.
+        /// Zusätzliche Überprüfung ob der Benutzer existiert
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="coins"></param>
+        /// <returns></returns>
+        /// <exception cref="UserException">Wird geworfen wenn Benutzer nicht existiert</exception>
         public async Task ModifyUser(string username, double coins)
         {
+            var reciever = await _context.Coins.FirstOrDefaultAsync(s => s.UserId.Username == username);
+            if (reciever == null)
+                throw new UserException("User has no account");
+
             _context.Coins.Where(s => s.UserId.Username == username).First().Coins = coins;
             await _context.SaveChangesAsync();
         }
@@ -148,6 +194,15 @@ namespace AarauCoinMVC.Services
 
         #region Send money
 
+        /// <summary>
+        /// Methode zum senden von Coins von einem Benutzer an einen anderen Benutzer
+        /// Überprüfung ob Coin Accounts vorhanden sind und ob genug Coins vorhanden sind
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="receiver"></param>
+        /// <param name="amount"></param>
+        /// <returns></returns>
+        /// <exception cref="UserException">Wird geworfen wenn Sender nicht existiert, Reciever nicht existiert oder wenn nicht genügend Coins vorhanden sind</exception>
         public async Task SendMoney(string sender, string receiver, double amount)
         {
             var senderAccount = await _context.Coins.FirstOrDefaultAsync(s => s.UserId.Username == sender);
@@ -172,6 +227,12 @@ namespace AarauCoinMVC.Services
 
         #region Log
 
+        /// <summary>
+        /// Methode welche die Log Datei durch eine Methode parsed und in eine Liste von LogViewModels umwandelt, und zuletzt zurückgibt
+        /// </summary>
+        /// <param name="date"></param>
+        /// <returns></returns>
+        /// <exception cref="FileNotFoundException">Wird geworfen wenn File nicht gefunden wird</exception>
         public async Task<List<LogViewModel>> ReadLog(string date)
         {
             string fileName = $"../logs/webapi-{date}.log";
@@ -188,6 +249,11 @@ namespace AarauCoinMVC.Services
             return ParseLog(fileContent);
         }
 
+        /// <summary>
+        /// Methode welche die logs aus der ReadLog Methode in eine Liste von LogViewModels umwandelt und parsed
+        /// </summary>
+        /// <param name="fileContent"></param>
+        /// <returns></returns>
         public List<LogViewModel> ParseLog(string fileContent)
         {
             List<LogViewModel> list = new List<LogViewModel>();
