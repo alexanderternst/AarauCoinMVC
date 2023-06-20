@@ -1,4 +1,6 @@
 ﻿using AarauCoinMVC.Models;
+using AarauCoinMVC.Models.Database;
+using Microsoft.EntityFrameworkCore;
 
 namespace AarauCoinMVC.Services
 {
@@ -14,6 +16,7 @@ namespace AarauCoinMVC.Services
             InsertUser();
         }
 
+        #region Inser data
         private void InsertUser()
         {
             List<User> user = _context.Users.ToList();
@@ -37,7 +40,7 @@ namespace AarauCoinMVC.Services
                 _context.Users.Add(new User
                 {
                     Username = "Hans",
-                    Password = "123",
+                    Password = "ibz1234",
                     LevelId = _context.Levels.FirstOrDefault(s => s.LevelName == "User")
                 });
                 _context.SaveChanges();
@@ -45,7 +48,7 @@ namespace AarauCoinMVC.Services
                 _context.Users.Add(new User
                 {
                     Username = "Alex",
-                    Password = "123",
+                    Password = "ibz1234",
                     LevelId = _context.Levels.FirstOrDefault(s => s.LevelName == "Admin")
                 });
                 _context.SaveChanges();
@@ -65,12 +68,13 @@ namespace AarauCoinMVC.Services
                 _context.SaveChanges();
             }
         }
+        #endregion
 
-        public UserLoginDTO? GetUser(string username)
+        #region Get user data
+        public async Task<UserLoginDTO?> GetUser(string username)
         {
-            try
-            {
-                UserLoginDTO? list = _context.Users
+
+                UserLoginDTO? user = await _context.Users
                     .Select(e => new UserLoginDTO
                     {
                         Id = e.UserId,
@@ -78,90 +82,93 @@ namespace AarauCoinMVC.Services
                         Password = e.Password,
                         Level = e.LevelId.LevelName,
                         Coins = _context.Coins.Where(s => s.UserId.Username == username).FirstOrDefault()
-                    }).FirstOrDefault(s => s.Username.ToLower() == username.ToLower());
-                return list;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Unknown Exception" + ex.Message);
-                return null;
-            }
+                    }).FirstOrDefaultAsync(s => s.Username.ToLower() == username.ToLower());
+                return user;
+
         }
 
-        public List<string> GetUserNames()
+        public async Task<List<string>> GetUserNames()
         {
-            return _context.Users.Select(s => s.Username).ToList();
+            return await _context.Users.Select(s => s.Username).ToListAsync();
         }
 
-        public AccountViewModel? GetUserInformation(string username)
+        public async Task<AccountViewModel?> GetUserInformation(string username)
         {
-            AccountViewModel? list = _context.Users.
+            AccountViewModel? user = await _context.Users.
                   Select(e => new AccountViewModel
                   {
                       Username = e.Username,
                       Level = e.LevelId.LevelName,
                       Coins = _context.Coins.Where(s => s.UserId.Username == username).FirstOrDefault(),
-                  }).FirstOrDefault(s => s.Username.ToLower() == username.ToLower());
-            return list;
+                  }).FirstOrDefaultAsync(s => s.Username.ToLower() == username.ToLower());
+            return user;
         }
 
-        public void SendMoney(string sender, string receiver, double amount)
+        public async Task<List<AdminAccountViewModel>> GetAllUsers()
         {
-            var senderAccount = _context.Coins.FirstOrDefault(s => s.UserId.Username == sender);
-            var receiverAccount = _context.Coins.FirstOrDefault(s => s.UserId.Username == receiver);
-
-            if (senderAccount == null)
-                throw new Exception("Sender has no account");
-
-            if (receiverAccount == null)
-                throw new Exception("Receiver has no account");
-
-            if (senderAccount.Coins < amount)
-                throw new Exception("Not enough coins");
-
-            senderAccount.Coins -= amount;
-            receiverAccount.Coins += amount;
-
-            _context.SaveChanges();
-
+            return await _context.Users.Select(e => new AdminAccountViewModel
+            {
+                Username = e.Username,
+                Coins = _context.Coins.Where(s => s.UserId.Username == e.Username).First().Coins
+            }).ToListAsync();
         }
+        #endregion
 
-        public void CreateUser(string username, string password, string level, double coins)
+        #region Set user data
+        public async Task CreateUser(string username, string password, string level, double coins)
         {
-            _context.Users.Add(
+            await _context.Users.AddAsync(
                 new User
                 {
                     Username = username,
                     Password = password,
                     LevelId = _context.Levels.First(s => s.LevelName == level)
                 });
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            _context.Coins.Add(
+            await _context.Coins.AddAsync(
                  new Coin
                  {
                      Coins = coins,
                      UserId = _context.Users.First(s => s.Username == username)
                  });
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public List<AdminAccountViewModel> GetAllUsers()
-        {
-            return _context.Users.Select(e => new AdminAccountViewModel
-            {
-                Username = e.Username,
-                Coins = _context.Coins.Where(s => s.UserId.Username == e.Username).First().Coins
-            }).ToList();
-        }
 
-        public void ModifyUser(string username, double coins)
+
+        public async Task ModifyUser(string username, double coins)
         {
             _context.Coins.Where(s => s.UserId.Username == username).First().Coins = coins;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
+        #endregion
 
-        public List<LogViewModel> ReadLog(string date)
+        #region Send money
+        public async Task SendMoney(string sender, string receiver, double amount)
+        {
+            var senderAccount = await _context.Coins.FirstOrDefaultAsync(s => s.UserId.Username == sender);
+            var receiverAccount = await _context.Coins.FirstOrDefaultAsync(s => s.UserId.Username == receiver);
+
+            if (senderAccount == null)
+                throw new UserException("Sender has no account");
+
+            if (receiverAccount == null)
+                throw new UserException("Receiver has no account");
+
+            if (senderAccount.Coins < amount)
+                throw new UserException("Not enough coins");
+
+            senderAccount.Coins -= amount;
+            receiverAccount.Coins += amount;
+
+            await _context.SaveChangesAsync();
+
+        }
+        #endregion
+
+        #region Log
+        public async Task<List<LogViewModel>> ReadLog(string date)
         {
             string fileName = $"../logs/webapi-{date}.log";
 
@@ -172,10 +179,13 @@ namespace AarauCoinMVC.Services
             using (var fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 StreamReader streamReader = new StreamReader(fileStream);
-                fileContent = streamReader.ReadToEnd();
+                fileContent = await streamReader.ReadToEndAsync();
             }
+            return ParseLog(fileContent);
+        }
 
-
+        public List<LogViewModel> ParseLog(string fileContent)
+        {
             List<LogViewModel> list = new List<LogViewModel>();
 
             foreach (var line in fileContent.Split("\n"))
@@ -203,5 +213,6 @@ namespace AarauCoinMVC.Services
 
             return list;
         }
+        #endregion
     }
 }

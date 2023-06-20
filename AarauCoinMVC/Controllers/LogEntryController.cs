@@ -29,19 +29,21 @@ namespace AarauCoinMVC.Controllers
             }
         }
 
-        public IActionResult ShowLog(DateTime date, string searchContent, string picker)
+        public async Task<IActionResult> ShowLog(DateTime date, string searchContent, string picker)
         {
             if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
             {
                 try
                 {
                     string datestring = date.ToString("yyyyMMdd");
-                    List<LogViewModel> logs = _context.ReadLog(datestring);
+                    List<LogViewModel> logs = await _context.ReadLog(datestring);
+
                     var filteredLogs = logs
                         .Where(
                             s => string.IsNullOrWhiteSpace(searchContent) ||
                             s.LogMessage.ToLower().Contains(searchContent.ToLower().Trim())
                                 );
+
                     if (picker == "Newest")
                         logs = filteredLogs.OrderByDescending(s => s.LogDate).ToList();
                     if (picker == "Oldest")

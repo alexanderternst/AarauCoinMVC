@@ -1,4 +1,4 @@
-using AarauCoinMVC.Models;
+using AarauCoinMVC.Models.Database;
 using AarauCoinMVC.Services;
 using Microsoft.EntityFrameworkCore;
 using Serilog;

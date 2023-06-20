@@ -1,4 +1,6 @@
-﻿namespace AarauCoinMVC.Models
+﻿using AarauCoinMVC.Models.Database;
+
+namespace AarauCoinMVC.Models
 {
     public class UserLoginDTO
     {

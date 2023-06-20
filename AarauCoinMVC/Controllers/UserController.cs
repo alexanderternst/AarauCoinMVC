@@ -19,30 +19,27 @@ namespace AarauCoinMVC.Controllers
             _logger = logger;
         }
 
+        #region Login/Logout
+
         public IActionResult Login()
         {
             _logger.LogInformation($"Login page says hello");
             return View();
         }
 
-        public IActionResult LoginAction(LoginViewModel loginData)
+        public async Task<IActionResult> LoginAction(LoginViewModel loginData)
         {
             try
             {
                 if (loginData == null)
-                    throw new Exception("Login data is invalid");
+                    throw new UserException("Login data is invalid");
                 if (string.IsNullOrEmpty(loginData.Username) || string.IsNullOrEmpty(loginData.Username))
-                    throw new Exception("Username or password are empty");
+                    throw new UserException("Login failed, password or username are empty");
 
-                var user = _context.GetUser(loginData.Username);
+                var user = await _context.GetUser(loginData.Username);
 
                 if (user == null)
-                    throw new LoginFailedException();
-
-                //if (user.Coins == null)
-                //    TempData["Coins"] = "No coins registered";
-                //else
-                //    TempData["Coins"] = user.Coins.Coins.ToString();
+                    throw new Exception();
 
                 if (loginData.Username.ToLower() == user.Username.ToLower() && loginData.Password == user.Password)
                 {
@@ -52,26 +49,26 @@ namespace AarauCoinMVC.Controllers
                 }
                 else
                 {
-                    throw new LoginFailedException();
+                    throw new UserException("Login failed, incorrect password or username");
                 }
             }
-            catch (LoginFailedException)
+            catch (UserException uex)
             {
                 _logger.LogInformation($"User with {loginData.Username} failed to log in");
-                ViewBag.ErrorMessage = "Login failed, incorrect password or username";
+                ViewBag.ErrorMessage = uex.Message;
                 ViewBag.ErrorType = "info";
                 return View("Login");
             }
             catch (Exception ex)
             {
                 _logger.LogError("Unknown Exception" + ex.Message);
-                ViewBag.ErrorMessage = "Unknown Exception";
+                ViewBag.ErrorMessage = "Unknown error occured";
                 ViewBag.ErrorType = "danger";
                 return View("Login");
             }
         }
 
-        private void CreateLoginCookie(LoginViewModel loginData, string level)
+        private async Task CreateLoginCookie(LoginViewModel loginData, string level)
         {
             var claims = new List<Claim>
                 {
@@ -86,36 +83,25 @@ namespace AarauCoinMVC.Controllers
                 ExpiresUtc = DateTime.UtcNow.AddMinutes(1)
             };
 
-            HttpContext.SignInAsync("AarauCoin-AuthenticationScheme", new ClaimsPrincipal(claimsIdentity), authProperties);
+            await HttpContext.SignInAsync("AarauCoin-AuthenticationScheme", new ClaimsPrincipal(claimsIdentity), authProperties);
             _logger.LogInformation($"Authentification cookie for user {loginData.Username} was created");
         }
 
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
-            HttpContext.SignOutAsync("AarauCoin-AuthenticationScheme");
+            await HttpContext.SignOutAsync("AarauCoin-AuthenticationScheme");
             return RedirectToAction("Index", "Home");
         }
+        #endregion
 
-        public IActionResult Account()
+        #region Account Page
+        public async Task<IActionResult> Account()
         {
             if (User.Identity.IsAuthenticated)
             {
                 try
                 {
-                    if (TempData.ContainsKey("ErrorMessage"))
-                    {
-                        ViewBag.ErrorMessage = TempData["ErrorMessage"];
-                        ViewBag.ErrorType = TempData["ErrorType"];
-                    }
-
-                    AccountViewModel? userInformation = _context.GetUserInformation(User.Identity.Name);
-
-                    List<string> users = _context.GetUserNames();
-                    if (users != null)
-                    {
-                        users.Remove(User.Identity.Name.ToString());
-                        userInformation.Users = users.ToArray();
-                    }
+                    AccountViewModel? userInformation = await ShowAccount();
 
                     _logger.LogInformation($"User {User.Identity.Name} loaded account page");
                     return View("Account", userInformation);
@@ -123,8 +109,8 @@ namespace AarauCoinMVC.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogError("Unknown Exception" + ex.Message);
-                    ViewBag.ErrorMessage = "Unknown Exception";
-                    ViewBag.ErrorType = "danger";
+                    //ViewBag.ErrorMessage = "Unknown error occured";
+                    //ViewBag.ErrorType = "danger";
                     return RedirectToAction("Account", "User");
                 }
             }
@@ -134,27 +120,15 @@ namespace AarauCoinMVC.Controllers
             }
         }
 
-        public IActionResult AdminAccount()
+        public async Task<IActionResult> AdminAccount()
         {
-            if (User.Identity.IsAuthenticated || User.IsInRole("Admin"))
+            if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
             {
                 try
                 {
-                    if (TempData.ContainsKey("ErrorMessage"))
-                    {
-                        ViewBag.ErrorMessage = TempData["ErrorMessage"];
-                        ViewBag.ErrorType = TempData["ErrorType"];
-                    }
-
-                    AccountViewModel? userInformation = _context.GetUserInformation(User.Identity.Name);
-
-                    List<string> users = _context.GetUserNames();
-                    if (users != null)
-                    {
-                        users.Remove(User.Identity.Name.ToString());
-                        userInformation.Users = users.ToArray();
-                    }
-                    List<AdminAccountViewModel> allUsers = _context.GetAllUsers();
+                    AccountViewModel? userInformation = await ShowAccount();
+                    
+                    List<AdminAccountViewModel> allUsers = await _context.GetAllUsers();
                     if (allUsers != null)
                     {
                         userInformation.AllAccounts = allUsers;
@@ -166,8 +140,8 @@ namespace AarauCoinMVC.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogError("Unknown Exception" + ex.Message);
-                    ViewBag.ErrorMessage = "Unknown Exception";
-                    ViewBag.ErrorType = "danger";
+                    //ViewBag.ErrorMessage = "Unknown error occured";
+                    //ViewBag.ErrorType = "danger";
                     return RedirectToAction("Account", "User");
                 }
             }
@@ -177,23 +151,49 @@ namespace AarauCoinMVC.Controllers
             }
         }
 
-        public IActionResult ModifyUser(string username, double coins)
+        private async Task<AccountViewModel> ShowAccount()
         {
-            if (User.Identity.IsAuthenticated || User.IsInRole("Admin"))
+            if (TempData.ContainsKey("ErrorMessage"))
+            {
+                ViewBag.ErrorMessage = TempData["ErrorMessage"];
+                ViewBag.ErrorType = TempData["ErrorType"];
+            }
+
+            AccountViewModel? userInformation = await _context.GetUserInformation(User.Identity.Name);
+
+            List<string> users = await _context.GetUserNames();
+            if (users != null)
+            {
+                users.Remove(User.Identity.Name.ToString());
+                userInformation.Users = users.ToArray();
+            }
+            return userInformation;
+        }
+        #endregion
+
+        #region Admin Features
+        public async Task<IActionResult> ModifyUser(string username, double coins)
+        {
+            if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
             {
                 try
                 {
                     if (coins <= 0)
-                        throw new Exception("Amount must be greater than 0");
+                        throw new UserException("Amount must be greater than 0");
 
-                    _context.ModifyUser(username, coins);
+                    await _context.ModifyUser(username, coins);
+                    return RedirectToAction("AdminAccount", "User");
+                }
+                catch (UserException uex)
+                {
+                    _logger.LogInformation(uex.Message);
+                    SaveTempData(uex.Message, "info");
                     return RedirectToAction("AdminAccount", "User");
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError("Unknown Exception" + ex.Message);
-                    ViewBag.ErrorMessage = "Unknown Exception";
-                    ViewBag.ErrorType = "danger";
+                    SaveTempData(ex.Message, "danger");
                     return RedirectToAction("AdminAccount", "User");
                 }
             }
@@ -203,42 +203,9 @@ namespace AarauCoinMVC.Controllers
             }
         }
 
-        public IActionResult SendMoney(string reciever, int amount)
-        {
-            if (User.Identity.IsAuthenticated)
-            {
-                try
-                {
-                    if (amount <= 0)
-                        throw new Exception("Amount must be greater than 0");
+        
 
-                    _context.SendMoney(User.Identity.Name, reciever, amount);
-                    _logger.LogInformation($"User {User.Identity.Name} sent {amount} coins to {reciever}");
-
-                    if (User.IsInRole("Admin"))
-                        return RedirectToAction("AdminAccount", "User");
-                    else
-                        return RedirectToAction("Account", "User");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError("Unknown Exception" + ex.Message);
-                    TempData["ErrorMessage"] = "Unknown exception";
-                    TempData["ErrorType"] = "danger";
-
-                    if (User.IsInRole("Admin"))
-                        return RedirectToAction("AdminAccount", "User");
-                    else
-                        return RedirectToAction("Account", "User");
-                }
-            }
-            else
-            {
-                return RedirectToAction("Login", "User");
-            }
-        }
-
-        public IActionResult CreateUser(string username, string password, string level, double coins)
+        public async Task<IActionResult> CreateUser(string username, string password, string level, double coins)
         {
             if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
             {
@@ -246,24 +213,29 @@ namespace AarauCoinMVC.Controllers
                 {
                     string regex = "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,16}$";
                     if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(level))
-                        throw new Exception("Username, Password or level is null or empty");
+                        throw new UserException("Username, Password or level is null or empty");
                     if (coins <= 0)
-                        throw new Exception("Coins must be greater than 0");
-
+                        throw new UserException("Coins must be greater than 0");
                     if (!Regex.IsMatch(password, regex))
-                        throw new Exception("Password is invalid");
+                        throw new UserException("Password is invalid");
 
 
-                    _context.CreateUser(username, password, level, coins);
+                    await _context.CreateUser(username, password, level, coins);
                     _logger.LogInformation($"User with username {username} created");
+
+                    return RedirectToAction("AdminAccount", "User");
+                }
+                catch (UserException uex)
+                {
+                    _logger.LogError(uex.Message);
+                    SaveTempData(uex.Message, "info");
 
                     return RedirectToAction("AdminAccount", "User");
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError("Unknown Exception" + ex.Message);
-                    TempData["ErrorMessage"] = "Unknown exception";
-                    TempData["ErrorType"] = "danger";
+                    SaveTempData(ex.Message, "danger");
 
                     return RedirectToAction("AdminAccount", "User");
                 }
@@ -272,6 +244,56 @@ namespace AarauCoinMVC.Controllers
             {
                 return RedirectToAction("Login", "User");
             }
+        }
+        #endregion
+
+        #region Send Money
+        public async Task<IActionResult> SendMoney(string reciever, double amount)
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                try
+                {
+                    if (amount <= 0)
+                        throw new UserException("Amount must be greater than 0");
+
+                    await _context.SendMoney(User.Identity.Name, reciever, amount);
+                    _logger.LogInformation($"User {User.Identity.Name} sent {amount} coins to {reciever}");
+
+                    return RedirectToAction(ReturnPage(), "User");
+                }
+                catch (UserException uex)
+                {
+                    _logger.LogError(uex.Message);
+                    SaveTempData(uex.Message, "info");
+                    return RedirectToAction(ReturnPage(), "User");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("Unknown Exception" + ex.Message);
+                    SaveTempData(ex.Message, "danger");
+                    return RedirectToAction(ReturnPage(), "User");
+                }
+            }
+            else
+            {
+                return RedirectToAction("Login", "User");
+            }
+        }
+        #endregion
+
+        private void SaveTempData(string errorMessage, string errorType)
+        {
+            TempData["ErrorMessage"] = errorMessage;
+            TempData["ErrorType"] = errorType;
+        }
+
+        private string ReturnPage()
+        {
+            if (User.IsInRole("Admin"))
+                return "AdminAccount";
+            else
+                return "Account";
         }
     }
 }
