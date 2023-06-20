@@ -9,6 +9,11 @@ namespace AarauCoinMVC.Controllers
         private readonly ILogger<LogEntryController> _logger;
         private readonly IDatabaseCon _context;
 
+        /// <summary>
+        /// Konstruktor für den LogEntry controller
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="context"></param>
         public LogEntryController(ILogger<LogEntryController> logger, IDatabaseCon context)
         {
             ViewBag.ErrorMessage = null;
@@ -16,6 +21,10 @@ namespace AarauCoinMVC.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// Methode für den Aufruf der Log Seite
+        /// </summary>
+        /// <returns></returns>
         public IActionResult Log()
         {
             if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
@@ -29,6 +38,13 @@ namespace AarauCoinMVC.Controllers
             }
         }
 
+        /// <summary>
+        /// Methode für die Anzeige der Log Einträge
+        /// </summary>
+        /// <param name="date"></param>
+        /// <param name="searchContent"></param>
+        /// <param name="picker"></param>
+        /// <returns></returns>
         public async Task<IActionResult> ShowLog(DateTime date, string searchContent, string picker)
         {
             if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))

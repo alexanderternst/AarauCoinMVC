@@ -12,6 +12,11 @@ namespace AarauCoinMVC.Controllers
         private readonly ILogger<UserController> _logger;
         private readonly IDatabaseCon _context;
 
+        /// <summary>
+        /// Konstruktor für den User controller
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="context"></param>
         public UserController(ILogger<UserController> logger, IDatabaseCon context)
         {
             _context = context;
@@ -20,12 +25,21 @@ namespace AarauCoinMVC.Controllers
 
         #region Login/Logout
 
+        /// <summary>
+        /// Methode für den Aufruf der Login Seite
+        /// </summary>
+        /// <returns></returns>
         public IActionResult Login()
         {
             _logger.LogInformation($"Login page says hello");
             return View();
         }
 
+        /// <summary>
+        /// Methode für das ausführen der Login Aktion
+        /// </summary>
+        /// <param name="loginData"></param>
+        /// <returns></returns>
         public async Task<IActionResult> LoginAction(LoginViewModel loginData)
         {
             try
@@ -38,7 +52,7 @@ namespace AarauCoinMVC.Controllers
                 var user = await _context.GetUser(loginData.Username);
 
                 if (user == null)
-                    throw new Exception();
+                    throw new UserException("Login failed, incorrect password or username");
 
                 if (loginData.Username.ToLower() == user.Username.ToLower() && loginData.Password == user.Password)
                 {
@@ -68,6 +82,12 @@ namespace AarauCoinMVC.Controllers
             }
         }
 
+        /// <summary>
+        /// Methode für das erstellen des Login Cookies
+        /// </summary>
+        /// <param name="loginData"></param>
+        /// <param name="level"></param>
+        /// <returns></returns>
         private async Task CreateLoginCookie(LoginViewModel loginData, string level)
         {
             var claims = new List<Claim>
@@ -87,6 +107,10 @@ namespace AarauCoinMVC.Controllers
             _logger.LogInformation($"Authentification cookie for user {loginData.Username} was created");
         }
 
+        /// <summary>
+        /// Methode für das ausloggen und löschen des Cookies
+        /// </summary>
+        /// <returns></returns>
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync("AarauCoin-AuthenticationScheme");
@@ -97,6 +121,10 @@ namespace AarauCoinMVC.Controllers
 
         #region Account Page
 
+        /// <summary>
+        /// Methode für das anzeigen der Account Seite, Übergeben von Daten zur Page zum anzeigen
+        /// </summary>
+        /// <returns></returns>
         public async Task<IActionResult> Account()
         {
             if (User.Identity.IsAuthenticated)
@@ -122,6 +150,10 @@ namespace AarauCoinMVC.Controllers
             }
         }
 
+        /// <summary>
+        /// Methode für das anzeigen der Admin Account Seite, Übergeben von Daten zur Page zum anzeigen
+        /// </summary>
+        /// <returns></returns>
         public async Task<IActionResult> AdminAccount()
         {
             if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
@@ -153,6 +185,10 @@ namespace AarauCoinMVC.Controllers
             }
         }
 
+        /// <summary>
+        /// Auslesen der Daten für die Account Seite (Admin und User). Aufruf des Services für die durchsetzung der Datenabfrage
+        /// </summary>
+        /// <returns></returns>
         private async Task<AccountViewModel?> ShowAccount()
         {
             if (TempData.ContainsKey("ErrorMessage"))
@@ -164,6 +200,7 @@ namespace AarauCoinMVC.Controllers
             AccountViewModel? userInformation = await _context.GetUserInformation(User.Identity.Name);
 
             List<string> users = await _context.GetUserNames();
+            users = null;
             if (users != null)
             {
                 users.Remove(User.Identity.Name.ToString());
@@ -176,6 +213,13 @@ namespace AarauCoinMVC.Controllers
 
         #region Admin Features
 
+        /// <summary>
+        /// Methode für das hinzufügen von Coins zu einem User durch Service.
+        /// Nur für Admin Benutzer möglich
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="coins"></param>
+        /// <returns></returns>
         public async Task<IActionResult> ModifyUser(string username, double coins)
         {
             if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
@@ -207,6 +251,15 @@ namespace AarauCoinMVC.Controllers
             }
         }
 
+        /// <summary>
+        /// Methode für das erstellen eines neuen Users durch Service.
+        /// Nur für Admin Benutzer möglich
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <param name="level"></param>
+        /// <param name="coins"></param>
+        /// <returns></returns>
         public async Task<IActionResult> CreateUser(string username, string password, string level, double coins)
         {
             if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
@@ -251,6 +304,12 @@ namespace AarauCoinMVC.Controllers
 
         #region Send Money
 
+        /// <summary>
+        /// Methode für das senden von Coins an einen anderen User durch Service, möglich für alle Benutzer
+        /// </summary>
+        /// <param name="reciever"></param>
+        /// <param name="amount"></param>
+        /// <returns></returns>
         public async Task<IActionResult> SendMoney(string reciever, double amount)
         {
             if (User.Identity.IsAuthenticated)
@@ -286,12 +345,21 @@ namespace AarauCoinMVC.Controllers
 
         #endregion Send Money
 
+        /// <summary>
+        /// Methode für das speichern von TempData zur temporären Anzeige von Fehlermeldungen
+        /// </summary>
+        /// <param name="errorMessage"></param>
+        /// <param name="errorType"></param>
         private void SaveTempData(string errorMessage, string errorType)
         {
             TempData["ErrorMessage"] = errorMessage;
             TempData["ErrorType"] = errorType;
         }
 
+        /// <summary>
+        /// Methode für das zurückgeben der richtigen Seite, je nach Rolle des Benutzers
+        /// </summary>
+        /// <returns></returns>
         private string ReturnPage()
         {
             if (User.IsInRole("Admin"))
