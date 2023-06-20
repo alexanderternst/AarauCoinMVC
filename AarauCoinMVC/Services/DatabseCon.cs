@@ -146,6 +146,21 @@ namespace AarauCoinMVC.Services
             _context.SaveChanges();
         }
 
+        public List<AdminAccountViewModel> GetAllUsers()
+        {
+            return _context.Users.Select(e => new AdminAccountViewModel
+            {
+                Username = e.Username,
+                Coins = _context.Coins.Where(s => s.UserId.Username == e.Username).First().Coins
+            }).ToList();
+        }
+
+        public void ModifyUser(string username, double coins)
+        {
+            _context.Coins.Where(s => s.UserId.Username == username).First().Coins = coins;
+            _context.SaveChanges();
+        }
+
         public List<LogViewModel> ReadLog(string date)
         {
             string fileName = $"../logs/webapi-{date}.log";

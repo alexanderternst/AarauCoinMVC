@@ -77,7 +77,7 @@
                     <input type="text" name="username" required="required" class="form-control" placeholder="Enter username" />
                 </div>
                 <div class="col-md-8 topmargin">
-                    <input type="password" name="password" required="required" class="form-control" placeholder="Enter password" />
+                    <input type="password" name="password" minlength="8" maxlength="16" required="required" class="form-control" placeholder="Enter password" />
                 </div>
                 <div class="col-md-8 topmargin">
                     <input type="number" name="coins" required="required" class="form-control" placeholder="Enter amount of coins" />
@@ -96,3 +96,35 @@
     </div>
 </div>
 
+@if (Model.AllAccounts != null)
+{
+    <div class="card topmargin">
+        <div class="card-body">
+            <div class="row">
+                <h2>Modify User</h2>
+                <form method="post" asp-controller="User" asp-action="ModifyUser">
+
+                    @{
+                        <div class="col-md-8 topmargin">
+                            <select name="username" class="form-select">
+                                @foreach (var item in Model.AllAccounts)
+                                {
+                                    <option value="@item.Username">@item.Username - @item.Coins Coins</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-8 topmargin">
+                            <input placeholder="Enter amount of coins" name="coins" type="number" class="form-control" min="1" pattern="[0-9]+" />
+                        </div>
+
+                        <div class="col-md-8 topmargin">
+                            <button type="submit" class="btn btn-primary">Change account</button>
+                        </div>
+                    }
+                </form>
+
+            </div>
+        </div>
+    </div>
+}
