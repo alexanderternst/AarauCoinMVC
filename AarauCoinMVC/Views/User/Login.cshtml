@@ -4,7 +4,7 @@
 
 <h1>Login</h1>
 
-@if (ViewBag.ErrorMessage != null)
+@if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
 {
     <div class="alert alert-@ViewBag.ErrorType alert-dismissible" role="alert">
         <div>@ViewBag.ErrorMessage</div>

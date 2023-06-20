@@ -2,6 +2,7 @@ using AarauCoinMVC.Models;
 using AarauCoinMVC.Services;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using System.Globalization;
 
 namespace AarauCoinMVC
 {
@@ -35,11 +36,18 @@ namespace AarauCoinMVC
                     options.SlidingExpiration = true;
                 });
 
+
             builder.Services.AddDbContext<AarauCoinContext>(options => options.UseInMemoryDatabase(databaseName: "AuthorDb"));
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
             var app = builder.Build();
+
+            var culture = new CultureInfo("de-CH");
+            CultureInfo.CurrentCulture = culture;
+            CultureInfo.CurrentUICulture = culture;
+            Thread.CurrentThread.CurrentCulture = culture;
+            Thread.CurrentThread.CurrentUICulture = culture;
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
