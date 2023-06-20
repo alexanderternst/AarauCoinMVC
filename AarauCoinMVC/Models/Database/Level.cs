@@ -1,4 +1,4 @@
-﻿namespace AarauCoinMVC.Models
+﻿namespace AarauCoinMVC.Models.Database
 {
     public class Level
     {

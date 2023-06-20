@@ -80,7 +80,7 @@
                     <input type="password" name="password" minlength="8" maxlength="16" required="required" class="form-control" placeholder="Enter password" />
                 </div>
                 <div class="col-md-8 topmargin">
-                    <input type="number" name="coins" required="required" class="form-control" placeholder="Enter amount of coins" />
+                    <input type="number" name="coins" required="required" min="0" pattern="[0-9]+" class="form-control" placeholder="Enter amount of coins" />
                 </div>
                 <div class="col-md-8 topmargin">
                     <select name="level" class="form-select topmargin">
@@ -115,7 +115,7 @@
                         </div>
 
                         <div class="col-md-8 topmargin">
-                            <input placeholder="Enter amount of coins" name="coins" type="number" class="form-control" min="1" pattern="[0-9]+" />
+                            <input placeholder="Enter amount of coins" name="coins" type="number" class="form-control" min="0" required="required" pattern="[0-9]+" />
                         </div>
 
                         <div class="col-md-8 topmargin">

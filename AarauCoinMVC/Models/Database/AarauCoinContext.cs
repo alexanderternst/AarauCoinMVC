@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace AarauCoinMVC.Models
+namespace AarauCoinMVC.Models.Database
 {
     public class AarauCoinContext : DbContext
     {
