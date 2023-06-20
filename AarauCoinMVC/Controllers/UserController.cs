@@ -254,8 +254,8 @@ namespace AarauCoinMVC.Controllers
             {
                 try
                 {
-                    if (amount <= 0)
-                        throw new UserException("Amount must be greater than 0");
+                    if (amount <= 1)
+                        throw new UserException("Amount must be greater than 1");
 
                     await _context.SendMoney(User.Identity.Name, reciever, amount);
                     _logger.LogInformation($"User {User.Identity.Name} sent {amount} coins to {reciever}");
