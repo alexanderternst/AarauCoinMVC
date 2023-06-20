@@ -47,7 +47,7 @@
                 <h2>Transfer Money</h2>
                 <form method="post" asp-action="SendMoney" asp-controller="User">
                     <div class="col-md-8 topmargin">
-                        <input type="number" name="amount" pattern="[0-9]+" min="1" required="required" class="form-control" placeholder="Enter Money" />
+                        <input type="number" name="amount" pattern="[0-9]+" min="1" required="required" class="form-control" placeholder="Amount to be transferred" />
                     </div>
                     <div class="col-md-8 topmargin">
                         <select name="reciever" class="form-select topmargin">
@@ -60,7 +60,7 @@
                         </select>
                     </div>
                     <div class="col-md-8 topmargin">
-                        <button type="submit" class="btn btn-primary">Send money</button>
+                        <button type="submit" class="btn btn-primary">Transfer money</button>
                     </div>
                 </form>
             </div>
@@ -80,6 +80,7 @@
                     <input type="password" name="password" minlength="8" maxlength="16" required="required" class="form-control" placeholder="Enter password" />
                 </div>
                 <div class="col-md-8 topmargin">
+
                     <input type="number" name="coins" required="required" min="0" pattern="[0-9]+" class="form-control" placeholder="Enter amount of coins" />
                 </div>
                 <div class="col-md-8 topmargin">
