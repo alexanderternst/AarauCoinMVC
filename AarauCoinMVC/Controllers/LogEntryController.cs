@@ -54,15 +54,15 @@ namespace AarauCoinMVC.Controllers
                 }
                 catch (FileNotFoundException ex)
                 {
-                    _logger.LogError("File not found" + ex.Message);
+                    _logger.LogError("File not found " + ex.Message);
                     ViewBag.ErrorMessage = "File not found";
                     ViewBag.ErrorType = "danger";
                     return View("Log");
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError("Unknown Exception" + ex.Message);
-                    ViewBag.ErrorMessage = "Unknown Exception";
+                    _logger.LogError("Unknown Exception " + ex.Message);
+                    ViewBag.ErrorMessage = "Unknown error occured";
                     ViewBag.ErrorType = "danger";
                     return View("Log");
                 }

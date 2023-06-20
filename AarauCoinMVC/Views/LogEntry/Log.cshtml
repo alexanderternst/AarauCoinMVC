@@ -13,17 +13,6 @@
     </div>
 }
 
-@*<select class="form-select topmargin">
-    @{
-        string[] fileArray = Directory.GetFiles(@"..\logs\", "*.log");
-        fileArray = fileArray.Take(fileArray.Length - 1).ToArray();
-        foreach (string file in fileArray)
-        {
-            <option value="@file">@file</option>
-        }
-    }
-</select>*@
-
 <form method="post" asp-controller="LogEntry" asp-action="ShowLog">
     <div class="row">
         <div class="col-md-4 topmargin">

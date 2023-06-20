@@ -19,6 +19,7 @@ namespace AarauCoinMVC.Services
         Task SendMoney(string sender, string receiver, double amount);
 
         Task CreateUser(string username, string password, string level, double coins);
+
         List<LogViewModel> ParseLog(string fileContent);
     }
 }

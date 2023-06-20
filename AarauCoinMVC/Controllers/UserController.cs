@@ -2,7 +2,6 @@ using AarauCoinMVC.Models;
 using AarauCoinMVC.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
-using NuGet.Configuration;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 
@@ -49,19 +48,20 @@ namespace AarauCoinMVC.Controllers
                 }
                 else
                 {
+                    _logger.LogInformation($"User {loginData.Username} failed to log in");
                     throw new UserException("Login failed, incorrect password or username");
                 }
             }
             catch (UserException uex)
             {
-                _logger.LogInformation($"User with {loginData.Username} failed to log in");
+                _logger.LogInformation(uex.Message);
                 ViewBag.ErrorMessage = uex.Message;
                 ViewBag.ErrorType = "info";
                 return View("Login");
             }
             catch (Exception ex)
             {
-                _logger.LogError("Unknown Exception" + ex.Message);
+                _logger.LogError("Unknown Exception " + ex.Message);
                 ViewBag.ErrorMessage = "Unknown error occured";
                 ViewBag.ErrorType = "danger";
                 return View("Login");
@@ -92,9 +92,11 @@ namespace AarauCoinMVC.Controllers
             await HttpContext.SignOutAsync("AarauCoin-AuthenticationScheme");
             return RedirectToAction("Index", "Home");
         }
-        #endregion
+
+        #endregion Login/Logout
 
         #region Account Page
+
         public async Task<IActionResult> Account()
         {
             if (User.Identity.IsAuthenticated)
@@ -108,7 +110,7 @@ namespace AarauCoinMVC.Controllers
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError("Unknown Exception" + ex.Message);
+                    _logger.LogError("Unknown Exception " + ex.Message);
                     //ViewBag.ErrorMessage = "Unknown error occured";
                     //ViewBag.ErrorType = "danger";
                     return RedirectToAction("Account", "User");
@@ -127,7 +129,7 @@ namespace AarauCoinMVC.Controllers
                 try
                 {
                     AccountViewModel? userInformation = await ShowAccount();
-                    
+
                     List<AdminAccountViewModel> allUsers = await _context.GetAllUsers();
                     if (allUsers != null)
                     {
@@ -139,7 +141,7 @@ namespace AarauCoinMVC.Controllers
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError("Unknown Exception" + ex.Message);
+                    _logger.LogError("Unknown Exception " + ex.Message);
                     //ViewBag.ErrorMessage = "Unknown error occured";
                     //ViewBag.ErrorType = "danger";
                     return RedirectToAction("Account", "User");
@@ -169,9 +171,11 @@ namespace AarauCoinMVC.Controllers
             }
             return userInformation;
         }
-        #endregion
+
+        #endregion Account Page
 
         #region Admin Features
+
         public async Task<IActionResult> ModifyUser(string username, double coins)
         {
             if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
@@ -192,8 +196,8 @@ namespace AarauCoinMVC.Controllers
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError("Unknown Exception" + ex.Message);
-                    SaveTempData(ex.Message, "danger");
+                    _logger.LogError("Unknown Exception " + ex.Message);
+                    SaveTempData("Unknown error occured", "danger");
                     return RedirectToAction("AdminAccount", "User");
                 }
             }
@@ -202,8 +206,6 @@ namespace AarauCoinMVC.Controllers
                 return RedirectToAction("Login", "User");
             }
         }
-
-        
 
         public async Task<IActionResult> CreateUser(string username, string password, string level, double coins)
         {
@@ -219,7 +221,6 @@ namespace AarauCoinMVC.Controllers
                     if (!Regex.IsMatch(password, regex))
                         throw new UserException("Password is invalid");
 
-
                     await _context.CreateUser(username, password, level, coins);
                     _logger.LogInformation($"User with username {username} created");
 
@@ -234,8 +235,8 @@ namespace AarauCoinMVC.Controllers
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError("Unknown Exception" + ex.Message);
-                    SaveTempData(ex.Message, "danger");
+                    _logger.LogError("Unknown Exception  " + ex.Message);
+                    SaveTempData("Unknown error occured", "danger");
 
                     return RedirectToAction("AdminAccount", "User");
                 }
@@ -245,9 +246,11 @@ namespace AarauCoinMVC.Controllers
                 return RedirectToAction("Login", "User");
             }
         }
-        #endregion
+
+        #endregion Admin Features
 
         #region Send Money
+
         public async Task<IActionResult> SendMoney(string reciever, double amount)
         {
             if (User.Identity.IsAuthenticated)
@@ -270,8 +273,8 @@ namespace AarauCoinMVC.Controllers
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError("Unknown Exception" + ex.Message);
-                    SaveTempData(ex.Message, "danger");
+                    _logger.LogError("Unknown Exception " + ex.Message);
+                    SaveTempData("Unknown error occured", "danger");
                     return RedirectToAction(ReturnPage(), "User");
                 }
             }
@@ -280,7 +283,8 @@ namespace AarauCoinMVC.Controllers
                 return RedirectToAction("Login", "User");
             }
         }
-        #endregion
+
+        #endregion Send Money
 
         private void SaveTempData(string errorMessage, string errorType)
         {

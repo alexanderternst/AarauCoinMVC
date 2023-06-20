@@ -17,6 +17,7 @@ namespace AarauCoinMVC.Services
         }
 
         #region Insert data
+
         private void InsertUser()
         {
             List<User> user = _context.Users.ToList();
@@ -68,23 +69,23 @@ namespace AarauCoinMVC.Services
                 _context.SaveChanges();
             }
         }
-        #endregion
+
+        #endregion Insert data
 
         #region Get user data
+
         public async Task<UserLoginDTO?> GetUser(string username)
         {
-
-                UserLoginDTO? user = await _context.Users
-                    .Select(e => new UserLoginDTO
-                    {
-                        Id = e.UserId,
-                        Username = e.Username,
-                        Password = e.Password,
-                        Level = e.LevelId.LevelName,
-                        Coins = _context.Coins.Where(s => s.UserId.Username == username).FirstOrDefault()
-                    }).FirstOrDefaultAsync(s => s.Username.ToLower() == username.ToLower());
-                return user;
-
+            UserLoginDTO? user = await _context.Users
+                .Select(e => new UserLoginDTO
+                {
+                    Id = e.UserId,
+                    Username = e.Username,
+                    Password = e.Password,
+                    Level = e.LevelId.LevelName,
+                    Coins = _context.Coins.Where(s => s.UserId.Username == username).FirstOrDefault()
+                }).FirstOrDefaultAsync(s => s.Username.ToLower() == username.ToLower());
+            return user;
         }
 
         public async Task<List<string>> GetUserNames()
@@ -112,9 +113,11 @@ namespace AarauCoinMVC.Services
                 Coins = _context.Coins.Where(s => s.UserId.Username == e.Username).First().Coins
             }).ToListAsync();
         }
-        #endregion
+
+        #endregion Get user data
 
         #region Set user data
+
         public async Task CreateUser(string username, string password, string level, double coins)
         {
             await _context.Users.AddAsync(
@@ -135,16 +138,16 @@ namespace AarauCoinMVC.Services
             await _context.SaveChangesAsync();
         }
 
-
-
         public async Task ModifyUser(string username, double coins)
         {
             _context.Coins.Where(s => s.UserId.Username == username).First().Coins = coins;
             await _context.SaveChangesAsync();
         }
-        #endregion
+
+        #endregion Set user data
 
         #region Send money
+
         public async Task SendMoney(string sender, string receiver, double amount)
         {
             var senderAccount = await _context.Coins.FirstOrDefaultAsync(s => s.UserId.Username == sender);
@@ -163,11 +166,12 @@ namespace AarauCoinMVC.Services
             receiverAccount.Coins += amount;
 
             await _context.SaveChangesAsync();
-
         }
-        #endregion
+
+        #endregion Send money
 
         #region Log
+
         public async Task<List<LogViewModel>> ReadLog(string date)
         {
             string fileName = $"../logs/webapi-{date}.log";
@@ -213,6 +217,7 @@ namespace AarauCoinMVC.Services
 
             return list;
         }
-        #endregion
+
+        #endregion Log
     }
 }

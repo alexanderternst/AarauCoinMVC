@@ -2,7 +2,6 @@ using AarauCoinMVC.Models.Database;
 using AarauCoinMVC.Services;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-using System.Globalization;
 
 namespace AarauCoinMVC
 {
@@ -20,8 +19,11 @@ namespace AarauCoinMVC
 
             builder.Services.AddScoped<IDatabaseCon, DatabseCon>();
 
-            //
-            // : Improve with better names
+            builder.Services.AddAntiforgery(options =>
+            {
+                options.HeaderName = "XSRF-TOKEN";
+            });
+
             builder.Services.AddAuthentication(options =>
                 {
                     options.DefaultAuthenticateScheme = "AarauCoin-AuthenticationScheme";
@@ -35,19 +37,13 @@ namespace AarauCoinMVC
                     options.Cookie.HttpOnly = true;
                     options.SlidingExpiration = true;
                 });
-
+            builder.Services.AddRazorPages();
 
             builder.Services.AddDbContext<AarauCoinContext>(options => options.UseInMemoryDatabase(databaseName: "AuthorDb"));
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
             var app = builder.Build();
-
-            var culture = new CultureInfo("de-CH");
-            CultureInfo.CurrentCulture = culture;
-            CultureInfo.CurrentUICulture = culture;
-            Thread.CurrentThread.CurrentCulture = culture;
-            Thread.CurrentThread.CurrentUICulture = culture;
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
@@ -69,6 +65,17 @@ namespace AarauCoinMVC
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}");
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapRazorPages();
+            });
+
+            app.Use(async (context, next) =>
+            {
+                context.Response.Headers.Add("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';");
+                await next();
+            });
 
             app.Run();
         }
