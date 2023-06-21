@@ -146,12 +146,14 @@ namespace AarauCoinMVC.Services
 
         /// <summary>
         /// Methode für das Erstellen eines neuen Benutzers mit Coins account
+        /// Überprüfung ob der Benutzer bereits existiert
         /// </summary>
         /// <param name="username"></param>
         /// <param name="password"></param>
         /// <param name="level"></param>
         /// <param name="coins"></param>
         /// <returns></returns>
+        /// <exception cref="UserException">Wird geworfen wenn Benutzer bereits existiert</exception>
         public async Task CreateUser(string username, string password, string level, double coins)
         {
             var user = await _context.Users.FirstOrDefaultAsync(s => s.Username.ToLower() == username.ToLower());
