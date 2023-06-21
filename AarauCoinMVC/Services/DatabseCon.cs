@@ -154,6 +154,10 @@ namespace AarauCoinMVC.Services
         /// <returns></returns>
         public async Task CreateUser(string username, string password, string level, double coins)
         {
+            var user = await _context.Users.FirstOrDefaultAsync(s => s.Username.ToLower() == username.ToLower());
+            if (user != null)
+                throw new UserException($"User with username {username} already exists");
+
             await _context.Users.AddAsync(
                 new User
                 {

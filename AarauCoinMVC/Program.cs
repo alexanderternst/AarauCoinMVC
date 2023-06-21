@@ -73,7 +73,7 @@ namespace AarauCoinMVC
 
             app.Use(async (context, next) =>
             {
-                context.Response.Headers.Add("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';");
+                context.Response.Headers.Add("Content-Security-Policy", "default-src 'none';");
                 await next();
             });
 

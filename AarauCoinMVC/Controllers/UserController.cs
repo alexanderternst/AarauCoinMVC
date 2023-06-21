@@ -200,7 +200,6 @@ namespace AarauCoinMVC.Controllers
             AccountViewModel? userInformation = await _context.GetUserInformation(User.Identity.Name);
 
             List<string> users = await _context.GetUserNames();
-            users = null;
             if (users != null)
             {
                 users.Remove(User.Identity.Name.ToString());
