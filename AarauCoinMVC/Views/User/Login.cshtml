@@ -1,0 +1,33 @@
+﻿@{
+    ViewData["Title"] = "Login";
+}
+
+<h1>Login</h1>
+
+@if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+{
+    <div class="alert alert-@ViewBag.ErrorType alert-dismissible" role="alert">
+        <div>@ViewBag.ErrorMessage</div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<form method="post" asp-controller="User" asp-action="LoginAction">
+    <div class="row">
+        <div class="col-md-6">
+
+            <div class="col-md-8 topmargin">
+                <label for="username" class="form-label">Username: </label>
+                <input type="text" minlength="1" class="form-control" id="username" name="Username" required>
+            </div>
+
+            <div class="col-md-8 topmargin">
+                <label for="password" class="form-label">Password: </label>
+                <input type="password" minlength="1" class="form-control" id="password" name="Password" required>
+            </div>
+            <br>
+
+            <button type="submit" class="btn btn-primary">Login</button>
+        </div>
+    </div>
+</form>

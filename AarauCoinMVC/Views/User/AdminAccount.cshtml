@@ -1,0 +1,131 @@
+﻿@model AccountViewModel;
+@{
+    ViewData["Title"] = "Account";
+}
+
+<h1>Account</h1>
+
+@if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+{
+    <div class="alert alert-@ViewBag.ErrorType alert-dismissible" role="alert">
+        <div>@ViewBag.ErrorMessage</div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="card topmargin">
+    <div class="card-body">
+        <div class="row">
+            <div class="col">
+                <h2>Account details</h2>
+
+                <p><strong>Name: </strong>@Model.Username</p>
+                <p><strong>Level: </strong>@Model.Level</p>
+                @{
+                    if (Model.Coins != null)
+                    {
+                        <p><strong>Coins: </strong>@Model.Coins.Coins</p>
+                    }
+                    else
+                    {
+                        <p><strong>Coins: </strong>No coins registered</p>
+                    }
+                }
+            </div>
+        </div>
+        <form method="post" asp-controller="User" asp-action="Logout">
+            <button class="btn btn-primary" type="submit">Logout</button>
+        </form>
+    </div>
+</div>
+
+@if (Model.Users != null)
+{
+    <div class="card topmargin">
+        <div class="card-body">
+            <div class="row">
+                <h2>Transfer Money</h2>
+                <form method="post" asp-action="SendMoney" asp-controller="User">
+                    <div class="col-md-8 topmargin">
+                        <input type="number" name="amount" pattern="[0-9]+" min="1" required="required" class="form-control" placeholder="Amount to be transferred" />
+                    </div>
+                    <div class="col-md-8 topmargin">
+                        <select name="reciever" class="form-select topmargin">
+                            @{
+                                foreach (var user in Model.Users)
+                                {
+                                    <option value="@user">@user</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-8 topmargin">
+                        <button type="submit" class="btn btn-primary">Transfer money</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="card topmargin">
+    <div class="card-body">
+        <div class="row">
+            <h2>Create User</h2>
+            <form method="post" asp-action="CreateUser" asp-controller="User">
+                <div class="col-md-8 topmargin">
+                    <input type="text" name="username" required="required" class="form-control" placeholder="Enter username" />
+                </div>
+                <div class="col-md-8 topmargin">
+                    <input type="password" name="password" minlength="8" maxlength="16" required="required" class="form-control" placeholder="Enter password" />
+                </div>
+                <div class="col-md-8 topmargin">
+
+                    <input type="number" name="coins" required="required" min="0" pattern="[0-9]+" class="form-control" placeholder="Enter amount of coins" />
+                </div>
+                <div class="col-md-8 topmargin">
+                    <select name="level" class="form-select topmargin">
+                        <option value="Admin">Admin account</option>
+                        <option value="User">Regular account</option>
+                    </select>
+                </div>
+                <div class="col-md-8 topmargin">
+                    <button type="submit" class="btn btn-primary">Create user</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@if (Model.AllAccounts != null)
+{
+    <div class="card topmargin">
+        <div class="card-body">
+            <div class="row">
+                <h2>Modify User</h2>
+                <form method="post" asp-controller="User" asp-action="ModifyUser">
+
+                    @{
+                        <div class="col-md-8 topmargin">
+                            <select name="username" class="form-select">
+                                @foreach (var item in Model.AllAccounts)
+                                {
+                                    <option value="@item.Username">@item.Username - @item.Coins Coins</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-8 topmargin">
+                            <input placeholder="Enter amount of coins" name="coins" type="number" class="form-control" min="0" required="required" pattern="[0-9]+" />
+                        </div>
+
+                        <div class="col-md-8 topmargin">
+                            <button type="submit" class="btn btn-primary">Change account</button>
+                        </div>
+                    }
+                </form>
+
+            </div>
+        </div>
+    </div>
+}

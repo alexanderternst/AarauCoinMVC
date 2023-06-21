@@ -1,3 +1,8 @@
+using AarauCoinMVC.Models.Database;
+using AarauCoinMVC.Services;
+using Microsoft.EntityFrameworkCore;
+using Serilog;
+
 namespace AarauCoinMVC
 {
     public class Program
@@ -6,6 +11,35 @@ namespace AarauCoinMVC
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            var logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration)
+                .Enrich.FromLogContext()
+                .CreateLogger();
+            builder.Logging.ClearProviders();
+            builder.Logging.AddSerilog(logger);
+
+            builder.Services.AddScoped<IDatabaseCon, DatabseCon>();
+
+            builder.Services.AddAntiforgery(options =>
+            {
+                options.HeaderName = "XSRF-TOKEN";
+            });
+
+            builder.Services.AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = "AarauCoin-AuthenticationScheme";
+                    options.DefaultSignInScheme = "AarauCoin-AuthenticationScheme";
+                    options.DefaultChallengeScheme = "AarauCoin-AuthenticationScheme";
+                })
+                .AddCookie("AarauCoin-AuthenticationScheme", options =>
+                {
+                    // Configure the authentication cookie options
+                    options.Cookie.Name = "AarauCoin-AuthenticationCookie";
+                    options.Cookie.HttpOnly = true;
+                    options.SlidingExpiration = true;
+                });
+            builder.Services.AddRazorPages();
+
+            builder.Services.AddDbContext<AarauCoinContext>(options => options.UseInMemoryDatabase(databaseName: "AuthorDb"));
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
@@ -26,9 +60,22 @@ namespace AarauCoinMVC
 
             app.UseAuthorization();
 
+            app.UseAuthentication();
+
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+                pattern: "{controller=Home}/{action=Index}");
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapRazorPages();
+            });
+
+            app.Use(async (context, next) =>
+            {
+                context.Response.Headers.Add("Content-Security-Policy", "default-src 'none';");
+                await next();
+            });
 
             app.Run();
         }

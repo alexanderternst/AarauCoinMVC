@@ -1,0 +1,25 @@
+﻿using AarauCoinMVC.Models;
+
+namespace AarauCoinMVC.Services
+{
+    public interface IDatabaseCon
+    {
+        Task<UserLoginDTO?> GetUser(string username);
+
+        Task<AccountViewModel?> GetUserInformation(string username);
+
+        Task<List<LogViewModel>> ReadLog(string date);
+
+        Task<List<string>> GetUserNames();
+
+        Task<List<AdminAccountViewModel>> GetAllUsers();
+
+        Task ModifyUser(string username, double coins);
+
+        Task SendMoney(string sender, string receiver, double amount);
+
+        Task CreateUser(string username, string password, string level, double coins);
+
+        List<LogViewModel> ParseLog(string fileContent);
+    }
+}
