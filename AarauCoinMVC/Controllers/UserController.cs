@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
+using System.Transactions;
 
 namespace AarauCoinMVC.Controllers
 {
@@ -49,14 +50,16 @@ namespace AarauCoinMVC.Controllers
                 if (string.IsNullOrEmpty(loginData.Username) || string.IsNullOrEmpty(loginData.Username))
                     throw new UserException("Login failed, password or username are empty");
 
-                var user = await _context.GetUser(loginData.Username);
-
+                var user = await _context.Login(loginData.Username);
+                
                 if (user == null)
                     throw new UserException("Login failed, incorrect password or username");
 
-                if (loginData.Username.ToLower() == user.Username.ToLower() && loginData.Password == user.Password)
+                var correctPassword = _context.VerifyPassword(user.Salt, user.Password, loginData.Password);
+
+                if (correctPassword)
                 {
-                    await CreateLoginCookie(loginData, user.Level);
+                    await CreateLoginCookie(loginData, user.LevelId.LevelName);
                     _logger.LogInformation($"User {loginData.Username} logged in");
                     return RedirectToAction("Index", "Home");
                 }
