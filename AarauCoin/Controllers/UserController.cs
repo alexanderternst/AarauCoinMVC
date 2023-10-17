@@ -2,6 +2,7 @@
 using AarauCoin.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 
@@ -9,7 +10,7 @@ namespace AarauCoin.Controllers
 {
     public class UserController : Controller
     {
-        private readonly IHttpContextAccessor _contextAccessor;
+        private readonly IHttpContextAccessor _cA;
         private readonly ILogger<UserController> _logger;
         private readonly UserService _service;
 
@@ -20,7 +21,7 @@ namespace AarauCoin.Controllers
         /// <param name="context"></param>
         public UserController(ILogger<UserController> logger, UserService service, IHttpContextAccessor httpContextAccessor)
         {
-            _contextAccessor = httpContextAccessor;
+            _cA = httpContextAccessor;
             _service = service;
             _logger = logger;
         }
@@ -44,7 +45,7 @@ namespace AarauCoin.Controllers
         /// <returns></returns>
         public async Task<IActionResult> Login(UserIndexViewModel user)
         {
-            if (_contextAccessor.HttpContext?.User.Identity?.IsAuthenticated == true)
+            if (IsAuthenticated())
             {
                 return RedirectToAction("Index", "Home"); // maybe show error
             }
@@ -109,7 +110,7 @@ namespace AarauCoin.Controllers
             var authProperties = new AuthenticationProperties
             {
                 IsPersistent = true,
-                ExpiresUtc = DateTime.UtcNow.AddMinutes(1)
+                ExpiresUtc = DateTime.UtcNow.AddMinutes(30)
             };
 
             await HttpContext.SignInAsync("AarauCoin-AuthenticationScheme", new ClaimsPrincipal(claimsIdentity), authProperties);
@@ -128,252 +129,229 @@ namespace AarauCoin.Controllers
 
         #endregion
 
-        //#region Account Page
+        #region Account Page
 
-        ///// <summary>
-        ///// Methode für das anzeigen der Account Seite, Übergeben von Daten zur Page zum anzeigen
-        ///// </summary>
-        ///// <returns></returns>
-        //public async Task<IActionResult> Account()
-        //{
-        //    if (_contextAccessor.HttpContext?.User.Identity?.IsAuthenticated == true)
-        //    {
-        //        try
-        //        {
-        //            AccountViewModel? userInformation = await ShowAccount();
+        /// <summary>
+        /// Methode für das anzeigen der Account Seite, Übergeben von Daten zur Page zum anzeigen
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IActionResult> Account()
+        {
+            if (IsAuthenticated())
+            {
+                try
+                {
+                    var userInformation = await ShowAccount();
+                    _logger.LogInformation("User {Name} loaded account page", _cA.HttpContext?.User.Identity?.Name);
+                    return View("Account", userInformation);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("Unknown Exception {Message}", ex.Message);
+                    var userInfo = new UserAccountViewModel();
+                    userInfo.Error = ("An error occured", "danger");
+                    return View("Account", userInfo);
+                }
+            }
+            else
+            {
+                return RedirectToAction("Index", "User");
+            }
+        }
 
-        //            _logger.LogInformation($"User {User.Identity.Name} loaded account page");
-        //            return View("Account", userInformation);
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            _logger.LogError("Unknown Exception " + ex.Message);
-        //            //ViewBag.ErrorMessage = "Unknown error occured";
-        //            //ViewBag.ErrorType = "danger";
-        //            return RedirectToAction("Account", "User");
-        //        }
-        //    }
-        //    else
-        //    {
-        //        return RedirectToAction("Login", "User");
-        //    }
-        //}
+        /// <summary>
+        /// Methode für das anzeigen der Admin Account Seite, Übergeben von Daten zur Page zum anzeigen
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IActionResult> AdminAccount()
+        {
+            if (IsAuthenticated() && User.IsInRole("Admin"))
+            {
+                try
+                {
+                    var userInformation = await ShowAccount();
+                    var allAccounts = await _service.GetAllUsers();
 
-        ///// <summary>
-        ///// Methode für das anzeigen der Admin Account Seite, Übergeben von Daten zur Page zum anzeigen
-        ///// </summary>
-        ///// <returns></returns>
-        //public async Task<IActionResult> AdminAccount()
-        //{
-        //    if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
-        //    {
-        //        try
-        //        {
-        //            AccountViewModel? userInformation = await ShowAccount();
+                    if (allAccounts != null)
+                    {
+                        userInformation.AllAccounts = allAccounts;
+                    }
 
-        //            List<AdminAccountViewModel> allUsers = await _context.GetAllUsers();
-        //            if (allUsers != null)
-        //            {
-        //                userInformation.AllAccounts = allUsers;
-        //            }
+                    _logger.LogInformation("User {Name} loaded admin account page", _cA.HttpContext?.User.Identity?.Name);
+                    return View("AdminAccount", userInformation);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("Exception occured. {Message}", ex.Message);
+                    var userInfo = new UserAccountViewModel();
+                    userInfo.Error = ("An error occured", "danger");
+                    return View("AdminAccount", userInfo);
+                }
+            }
+            else
+            {
+                return RedirectToAction("Index", "User");
+            }
+        }
 
-        //            _logger.LogInformation($"User {User.Identity.Name} loaded admin account page");
-        //            return View("AdminAccount", userInformation);
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            _logger.LogError("Unknown Exception " + ex.Message);
-        //            //ViewBag.ErrorMessage = "Unknown error occured";
-        //            //ViewBag.ErrorType = "danger";
-        //            return RedirectToAction("Account", "User");
-        //        }
-        //    }
-        //    else
-        //    {
-        //        return RedirectToAction("Login", "User");
-        //    }
-        //}
+        /// <summary>
+        /// Auslesen der Daten für die Account Seite (Admin und User). Aufruf des Services für die durchsetzung der Datenabfrage
+        /// </summary>
+        /// <returns></returns>
+        private async Task<UserAccountViewModel> ShowAccount()
+        {
+            var username = _cA.HttpContext?.User.Identity?.Name;
+            if (string.IsNullOrEmpty(username))
+                throw new Exception("Username is non existant");
 
-        ///// <summary>
-        ///// Auslesen der Daten für die Account Seite (Admin und User). Aufruf des Services für die durchsetzung der Datenabfrage
-        ///// </summary>
-        ///// <returns></returns>
-        //private async Task<AccountViewModel?> ShowAccount()
-        //{
-        //    if (TempData.ContainsKey("ErrorMessage"))
-        //    {
-        //        ViewBag.ErrorMessage = TempData["ErrorMessage"];
-        //        ViewBag.ErrorType = TempData["ErrorType"];
-        //    }
+            var userInformation = await _service.GetUserInformation(username);
 
-        //    AccountViewModel? userInformation = await _context.GetUserInformation(User.Identity.Name);
+            var users = _service.GetUserNames().ToList();
+            if (users != null) // list of all usernames except current one SECURITY: DONT SHOW USERNAMES MAYBE REMOVE
+            {
+                users.Remove(username);
+                userInformation.Users = users;
+            }
+            return userInformation;
+        }
 
-        //    List<string> users = await _context.GetUserNames();
-        //    if (users != null)
-        //    {
-        //        users.Remove(User.Identity.Name.ToString());
-        //        userInformation.Users = users.ToArray();
-        //    }
-        //    return userInformation;
-        //}
+        #endregion Account Page
 
-        //#endregion Account Page
+        #region Admin Features
 
-        //#region Admin Features
+        /// <summary>
+        /// Methode für das hinzufügen von Coins zu einem User durch Service.
+        /// Nur für Admin Benutzer möglich
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="coins"></param>
+        /// <returns></returns>
+        public async Task<IActionResult> ModifyUser(string username, double coins)
+        {
+            if (IsAuthenticated() && User.IsInRole("Admin"))
+            {
+                try
+                {
+                    if (coins <= 0)
+                        throw new UserException("Amount must be greater than 0");
 
-        ///// <summary>
-        ///// Methode für das hinzufügen von Coins zu einem User durch Service.
-        ///// Nur für Admin Benutzer möglich
-        ///// </summary>
-        ///// <param name="username"></param>
-        ///// <param name="coins"></param>
-        ///// <returns></returns>
-        //public async Task<IActionResult> ModifyUser(string username, double coins)
-        //{
-        //    if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
-        //    {
-        //        try
-        //        {
-        //            if (coins <= 0)
-        //                throw new UserException("Amount must be greater than 0");
+                    await _service.ModifyUser(username, coins);
+                    return RedirectToAction("AdminAccount", "User");
+                }
+                catch (UserException uex)
+                {
+                    _logger.LogInformation("{Message}", uex.Message);
+                    return BadRequest(uex.Message);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("Exception occured. {Message}", ex.Message);
+                    return BadRequest("An error occured");
+                }
+            }
+            else
+            {
+                return RedirectToAction("Index", "User");
+            }
+        }
 
-        //            await _context.ModifyUser(username, coins);
-        //            return RedirectToAction("AdminAccount", "User");
-        //        }
-        //        catch (UserException uex)
-        //        {
-        //            _logger.LogInformation(uex.Message);
-        //            SaveTempData(uex.Message, "info");
-        //            return RedirectToAction("AdminAccount", "User");
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            _logger.LogError("Unknown Exception " + ex.Message);
-        //            SaveTempData("Unknown error occured", "danger");
-        //            return RedirectToAction("AdminAccount", "User");
-        //        }
-        //    }
-        //    else
-        //    {
-        //        return RedirectToAction("Login", "User");
-        //    }
-        //}
+        /// <summary>
+        /// Methode für das erstellen eines neuen Users durch Service.
+        /// Nur für Admin Benutzer möglich
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <param name="level"></param>
+        /// <param name="coins"></param>
+        /// <returns></returns>
+        public async Task<IActionResult> CreateUser(UserAccountViewModel viewmodel)
+        {
+            if (IsAuthenticated() && User.IsInRole("Admin"))
+            {
+                var createUserViewModel = viewmodel.CreateUser;
+                if (ModelState.IsValid)
+                {
+                    try
+                    {
+                        await _service.CreateUser(createUserViewModel.Username, createUserViewModel.Password, createUserViewModel.Level, createUserViewModel.Coins);
+                        _logger.LogInformation("User with username {Username} created", createUserViewModel.Username);
+                        return RedirectToAction("AdminAccount", "User");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError("Exception occured. {Message}", ex.Message);
+                        return BadRequest("An error occured");
+                    }
+                }
+                else
+                {
+                    return BadRequest(ModelState);
+                }
+            }
+            else
+            {
+                return RedirectToAction("Index", "User");
+            }
+        }
 
-        ///// <summary>
-        ///// Methode für das erstellen eines neuen Users durch Service.
-        ///// Nur für Admin Benutzer möglich
-        ///// </summary>
-        ///// <param name="username"></param>
-        ///// <param name="password"></param>
-        ///// <param name="level"></param>
-        ///// <param name="coins"></param>
-        ///// <returns></returns>
-        //public async Task<IActionResult> CreateUser(string username, string password, string level, double coins)
-        //{
-        //    if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
-        //    {
-        //        try
-        //        {
-        //            string regex = "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,16}$";
-        //            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || string.IsNullOrEmpty(level))
-        //                throw new UserException("Username, Password or level is null or empty");
-        //            if (coins <= 0)
-        //                throw new UserException("Coins must be greater than 0");
-        //            if (!Regex.IsMatch(password, regex))
-        //                throw new UserException("Password is invalid");
+        #endregion Admin Features
 
-        //            await _context.CreateUser(username, password, level, coins);
-        //            _logger.LogInformation($"User with username {username} created");
+        #region Send Money
 
-        //            return RedirectToAction("AdminAccount", "User");
-        //        }
-        //        catch (UserException uex)
-        //        {
-        //            _logger.LogError(uex.Message);
-        //            SaveTempData(uex.Message, "info");
+        /// <summary>
+        /// Methode für das senden von Coins an einen anderen User durch Service, möglich für alle Benutzer
+        /// </summary>
+        /// <param name="reciever"></param>
+        /// <param name="amount"></param>
+        /// <returns></returns>
+        public async Task<IActionResult> SendMoney(string reciever, double amount)
+        {
+            if (IsAuthenticated())
+            {
+                try
+                {
+                    if (amount <= 1)
+                        return BadRequest("Amount must be greater than 1");
 
-        //            return RedirectToAction("AdminAccount", "User");
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            _logger.LogError("Unknown Exception  " + ex.Message);
-        //            SaveTempData("Unknown error occured", "danger");
+                    var username = _cA.HttpContext?.User.Identity?.Name;
+                    if (username == null)
+                        return BadRequest("User does not exist");
 
-        //            return RedirectToAction("AdminAccount", "User");
-        //        }
-        //    }
-        //    else
-        //    {
-        //        return RedirectToAction("Login", "User");
-        //    }
-        //}
+                    await _service.SendMoney(username, reciever, amount);
+                    _logger.LogInformation("User {username} sent {amount} coins to {reciever}", username, amount, reciever);
 
-        //#endregion Admin Features
+                    return RedirectToAction(ReturnPage(), "User");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("Exception occured. {Message}", ex.Message);
+                    return BadRequest("An error occured");
+                }
+            }
+            else
+            {
+                return RedirectToAction("Login", "User");
+            }
+        }
 
-        //#region Send Money
+        #endregion Send Money
 
-        ///// <summary>
-        ///// Methode für das senden von Coins an einen anderen User durch Service, möglich für alle Benutzer
-        ///// </summary>
-        ///// <param name="reciever"></param>
-        ///// <param name="amount"></param>
-        ///// <returns></returns>
-        //public async Task<IActionResult> SendMoney(string reciever, double amount)
-        //{
-        //    if (User.Identity.IsAuthenticated)
-        //    {
-        //        try
-        //        {
-        //            if (amount <= 1)
-        //                throw new UserException("Amount must be greater than 1");
+        private bool IsAuthenticated()
+        {
+            if (_cA.HttpContext?.User.Identity?.IsAuthenticated == true) return true;
+            return false;
+        }
 
-        //            await _context.SendMoney(User.Identity.Name, reciever, amount);
-        //            _logger.LogInformation($"User {User.Identity.Name} sent {amount} coins to {reciever}");
-
-        //            return RedirectToAction(ReturnPage(), "User");
-        //        }
-        //        catch (UserException uex)
-        //        {
-        //            _logger.LogError(uex.Message);
-        //            SaveTempData(uex.Message, "info");
-        //            return RedirectToAction(ReturnPage(), "User");
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            _logger.LogError("Unknown Exception " + ex.Message);
-        //            SaveTempData("Unknown error occured", "danger");
-        //            return RedirectToAction(ReturnPage(), "User");
-        //        }
-        //    }
-        //    else
-        //    {
-        //        return RedirectToAction("Login", "User");
-        //    }
-        //}
-
-        //#endregion Send Money
-
-        ///// <summary>
-        ///// Methode für das speichern von TempData zur temporären Anzeige von Fehlermeldungen
-        ///// </summary>
-        ///// <param name="errorMessage"></param>
-        ///// <param name="errorType"></param>
-        //private void SaveTempData(string errorMessage, string errorType)
-        //{
-        //    TempData["ErrorMessage"] = errorMessage;
-        //    TempData["ErrorType"] = errorType;
-        //}
-
-        ///// <summary>
-        ///// Methode für das zurückgeben der richtigen Seite, je nach Rolle des Benutzers
-        ///// </summary>
-        ///// <returns></returns>
-        //private string ReturnPage()
-        //{
-        //    if (User.IsInRole("Admin"))
-        //        return "AdminAccount";
-        //    else
-        //        return "Account";
-        //}
+        /// <summary>
+        /// Methode für das zurückgeben der richtigen Seite, je nach Rolle des Benutzers
+        /// </summary>
+        /// <returns></returns>
+        private string ReturnPage()
+        {
+            if (User.IsInRole("Admin"))
+                return "AdminAccount";
+            else
+                return "Account";
+        }
     }
 }

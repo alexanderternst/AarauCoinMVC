@@ -37,6 +37,7 @@ namespace AarauCoin
             // Add services to the container.
             builder.Services.AddControllersWithViews();
             builder.Services.AddScoped<UserService>();
+            builder.Services.AddScoped<LogEntryService>();
             builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             var app = builder.Build();

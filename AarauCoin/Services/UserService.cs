@@ -85,10 +85,10 @@ namespace AarauCoin.Services
         /// </summary>
         /// <param name="username"></param>
         /// <returns></returns>
-        public async Task<AccountViewModel> GetUserInformation(string username)
+        public async Task<UserAccountViewModel> GetUserInformation(string username)
         {
             var user = await _context.Users.
-                  Select(e => new AccountViewModel
+                  Select(e => new UserAccountViewModel
                   {
                       Username = e.Username,
                       Level = e.Level.Name,
@@ -128,7 +128,7 @@ namespace AarauCoin.Services
         {
             var user = await _context.Users.FirstOrDefaultAsync(s => s.Username.ToLower() == username.ToLower());
             if (user != null)
-                throw new UserException($"User with username {username} already exists");
+                throw new Exception($"User with username {username} already exists");
 
             byte[] salt = new byte[16];
 
@@ -186,6 +186,35 @@ namespace AarauCoin.Services
                 byte[] hashBytes = sha256.ComputeHash(saltedPassword);
                 return (Convert.ToBase64String(salt), Convert.ToBase64String(hashBytes));
             }
+        }
+
+        /// <summary>
+        /// Methode zum senden von Coins von einem Benutzer an einen anderen Benutzer
+        /// Überprüfung ob Coin Accounts vorhanden sind und ob genug Coins vorhanden sind
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="receiver"></param>
+        /// <param name="amount"></param>
+        /// <returns></returns>
+        /// <exception cref="UserException">Wird geworfen wenn Sender nicht existiert, Reciever nicht existiert oder wenn nicht genügend Coins vorhanden sind</exception>
+        public async Task SendMoney(string sender, string receiver, double amount)
+        {
+            var senderAccount = await _context.CoinAccounts.FirstOrDefaultAsync(s => s.User.Username == sender);
+            var receiverAccount = await _context.CoinAccounts.FirstOrDefaultAsync(s => s.User.Username == receiver);
+
+            if (senderAccount == null)
+                throw new UserException("Sender has no account");
+
+            if (receiverAccount == null)
+                throw new UserException("Receiver has no account");
+
+            if (senderAccount.Coins < amount)
+                throw new UserException("Not enough coins in account");
+
+            senderAccount.Coins -= amount;
+            receiverAccount.Coins += amount;
+
+            await _context.SaveChangesAsync();
         }
     }
 }

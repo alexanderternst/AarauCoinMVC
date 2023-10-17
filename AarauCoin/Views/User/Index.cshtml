@@ -20,14 +20,14 @@
         <div class="col-md-6">
 
             <div class="mb-3">
-                @Html.LabelFor(m => m.Username, new { @class = "form-label" })
-                @Html.TextBoxFor(m => m.Username, new { @class = "form-control" })
+                @Html.LabelFor(m => m.Username, null, new { @class = "form-label" })
+                @Html.TextBoxFor(m => m.Username, null, new { @class = "form-control", @minlength = "1", @required="required", @pattern= @"^(?!\s*$).+" })
                 @Html.ValidationMessageFor(m => m.Username, null, new { @class = "validation" })
             </div>
 
             <div class="mb-3">
-                @Html.LabelFor(m => m.Password, new { @class = "form-label" })
-                @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
+                @Html.LabelFor(m => m.Password, null, new { @class = "form-label" })
+                @Html.PasswordFor(m => m.Password, new { @class = "form-control", @minlength = "1", @required="required", @pattern= @"^(?!\s*$).+" })
                 @Html.ValidationMessageFor(model => model.Password, null, new { @class = "validation" })
             </div>
 

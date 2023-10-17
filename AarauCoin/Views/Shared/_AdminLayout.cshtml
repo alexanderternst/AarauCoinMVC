@@ -25,9 +25,14 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="Account">Account</a>
-                                
+                        <li class="nav-item dropdown">
+                            <a class="nav-link text-dark dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Manage Account
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" asp-controller="User" asp-action="AdminAccount">Dashboard</a></li>
+                                <li><a class="dropdown-item" asp-controller="User" asp-action="Logout">Logout</a></li>
+                            </ul>
                         </li>
 
                         <li class="nav-item">
@@ -49,6 +54,30 @@
             &copy; 2023 - AarauCoinMVC - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
+
+    <div class="modal fade" id="passwordPolicyModal" tabindex="-1" role="dialog" aria-labelledby="passwordPolicyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="passwordPolicyModalLabel">Password Policy</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ul>
+                        <li>Your password must contain at least <strong>8</strong> characters.</li>
+                        <li>It must include at least one <strong>uppercase letter</strong>.</li>
+                        <li>It must include at least one <strong>lowercase letter</strong>.</li>
+                        <li>It must include at least one <strong>number</strong>.</li>
+                    </ul>
+                    <p class="small text-muted">Your password should be between <strong>8</strong> and <strong>16</strong> characters.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

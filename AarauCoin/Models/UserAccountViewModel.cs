@@ -2,7 +2,7 @@
 
 namespace AarauCoin.Models
 {
-    public class AccountViewModel
+    public class UserAccountViewModel
     {
         public string Username { get; set; } = string.Empty;
         public string Level { get; set; } = string.Empty;
@@ -10,11 +10,8 @@ namespace AarauCoin.Models
 
         public IEnumerable<string>? Users { get; set; }
         public IEnumerable<UserWithCoin>? AllAccounts { get; set; }
-    }
+        public CreateUserViewModel CreateUser { get; set; } = new();
 
-    public class UserWithCoin
-    {
-        public string Username { get; set; } = string.Empty;
-        public double Coins { get; set; }
+        public (string message, string type) Error { get; set; } = ("", "");
     }
 }
