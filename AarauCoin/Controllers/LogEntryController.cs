@@ -47,6 +47,7 @@ namespace AarauCoin.Controllers
         /// <param name="searchContent"></param>
         /// <param name="picker"></param>
         /// <returns></returns>
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ShowLog(DateTime date, string searchContent, string picker)
         {
             if (IsAuthenticated() && User.IsInRole("Admin"))

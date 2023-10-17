@@ -43,6 +43,7 @@ namespace AarauCoin.Controllers
         /// </summary>
         /// <param name="loginData"></param>
         /// <returns></returns>
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(UserIndexViewModel user)
         {
             if (IsAuthenticated())
@@ -264,6 +265,7 @@ namespace AarauCoin.Controllers
         /// <param name="level"></param>
         /// <param name="coins"></param>
         /// <returns></returns>
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateUser(UserAccountViewModel viewmodel)
         {
             if (IsAuthenticated() && User.IsInRole("Admin"))

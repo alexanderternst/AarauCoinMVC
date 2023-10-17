@@ -1,6 +1,7 @@
 using AarauCoin.Database;
 using AarauCoin.Services;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Serialization;
 using Serilog;
 
 namespace AarauCoin
@@ -39,6 +40,8 @@ namespace AarauCoin
             builder.Services.AddScoped<UserService>();
             builder.Services.AddScoped<LogEntryService>();
             builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+            builder.Services.AddAntiforgery(o => o.HeaderName = "XSRF-TOKEN");
 
             var app = builder.Build();
 
