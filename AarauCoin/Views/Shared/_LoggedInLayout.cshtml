@@ -1,4 +1,4 @@
-﻿@using AarauCoinMVC.Controllers
+@using AarauCoin.Controllers
 @using System.Security.Claims;
 <!DOCTYPE html>
 <html lang="en">
@@ -8,7 +8,7 @@
     <title>@ViewData["Title"] - AarauCoin</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/AarauCoinMVC.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/AarauCoin.styles.css" asp-append-version="true" />
 </head>
 <body>
     <header>
@@ -25,12 +25,7 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="AdminAccount">Account</a>
-                                
-                        </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="LogEntry" asp-action="Log">Logs</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="Account">Account</a>     
                         </li>
                     </ul>
                 </div>

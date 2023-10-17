@@ -1,0 +1,38 @@
+﻿@model AarauCoin.Models.UserIndexViewModel;
+@{
+    ViewData["Title"] = "Login";
+}
+
+<h1>Login</h1>
+
+@if (!string.IsNullOrEmpty(Model?.Error.message))
+{
+    <div class="alert alert-@Model.Error.type alert-dismissible" role="alert">
+        <div>@Model.Error.message</div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@using (Html.BeginForm("Login", "User", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-md-6">
+
+            <div class="mb-3">
+                @Html.LabelFor(m => m.Username, new { @class = "form-label" })
+                @Html.TextBoxFor(m => m.Username, new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.Username, null, new { @class = "validation" })
+            </div>
+
+            <div class="mb-3">
+                @Html.LabelFor(m => m.Password, new { @class = "form-label" })
+                @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.Password, null, new { @class = "validation" })
+            </div>
+
+            <button type="submit" class="btn btn-primary">Submit</button>
+
+        </div>
+    </div>
+}
