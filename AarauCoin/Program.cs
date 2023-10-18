@@ -2,12 +2,24 @@ using AarauCoin.Database;
 using AarauCoin.Services;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Serialization;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Serilog;
+using System.Configuration;
+using static System.Net.WebRequestMethods;
 
 namespace AarauCoin
 {
     public class Program
     {
+        // Tools > NuGet Package Manager > Package Manager Console
+        // --- Datenbank erstellen ---
+        // Add-Migration InitialCreate
+        // Update-Database
+
+        // --- Datenbank updaten ---
+        // Add-Migration LimitStrings
+        // Update-Database
+
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
@@ -33,7 +45,30 @@ namespace AarauCoin
                 });
             builder.Services.AddRazorPages();
 
+            // In memory
             builder.Services.AddDbContext<AarauCoinContext>(options => options.UseInMemoryDatabase(databaseName: "AarauCoinDb"));
+
+            // MySql (MariaDb)
+
+            // Open issue with pomelo, known issue (MariaDb) not working
+            // https://github.com/PomeloFoundation/Pomelo.EntityFrameworkCore.MySql/issues/1722
+            // https://github.com/PomeloFoundation/Pomelo.EntityFrameworkCore.MySql/issues/1714
+            // https://github.com/PomeloFoundation/Pomelo.EntityFrameworkCore.MySql/issues/1548
+            // Issue is sub query with OR filter in main query. MariaDb does not support "lateral derived tables" which causes this issue
+            // https://jira.mariadb.org/browse/MDEV-19078
+
+            //var connectionString = builder.Configuration.GetConnectionString("AarauCoinDb") ?? "";
+            //var serverVersion = ServerVersion.AutoDetect(connectionString);
+            //// Replace 'YourDbContext' with the name of your own DbContext derived class.
+            //builder.Services.AddDbContext<AarauCoinContext>(
+            //    dbContextOptions => dbContextOptions
+            //        .UseMySql(connectionString, serverVersion)
+            //        // The following three options help with debugging, but should
+            //        // be changed or removed for production.
+            //        .LogTo(Console.WriteLine, LogLevel.Information)
+            //        .EnableSensitiveDataLogging()
+            //        .EnableDetailedErrors()
+            //);
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();

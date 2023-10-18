@@ -13,13 +13,12 @@ namespace AarauCoin.Services
         public UserService(AarauCoinContext context)
         {
             _context = context;
-            InsertUser();
         }
 
-        private async void InsertUser()
+        public async Task InsertUser()
         {
-            IEnumerable<User> user = _context.Users;
-            IEnumerable<Level> lev = _context.Levels;
+            IQueryable<User> user = _context.Users;
+            IQueryable<Level> lev = _context.Levels;
             if (!user.Any() && !lev.Any())
             {
                 _context.Levels.Add(new Level
@@ -39,20 +38,6 @@ namespace AarauCoin.Services
                 await CreateUser("Hans", "ibz1234", "User", 1000);
 
                 await CreateUser("Alex", "ibz1234", "Admin", 1000);
-
-                _context.CoinAccounts.Add(new CoinAccount
-                {
-                    Coins = 1000,
-                    User = _context.Users.First(m => m.Username == "Hans")
-                });
-                _context.SaveChanges();
-
-                _context.CoinAccounts.Add(new CoinAccount
-                {
-                    Coins = 1000,
-                    User = _context.Users.First(m => m.Username == "Alex")
-                });
-                _context.SaveChanges();
             }
         }
 
@@ -67,8 +52,8 @@ namespace AarauCoin.Services
         public bool VerifyPassword(string storedSalt, string storedHashedPassword, string attemptedPassword)
         {
             byte[] salt = Convert.FromBase64String(storedSalt);
-            var hash = HashPasswordWithSalt(salt, attemptedPassword);            
-            return hash.HashedPassword == storedHashedPassword; // store type of hashing in db
+            var (_, HashedPassword) = HashPasswordWithSalt(salt, attemptedPassword);            
+            return HashedPassword == storedHashedPassword; 
         }
 
         /// <summary>
@@ -137,14 +122,15 @@ namespace AarauCoin.Services
                 rng.GetBytes(salt);
             }
 
-            var saltAndPassword = HashPasswordWithSalt(salt, password);
+            var (Salt, HashedPassword) = HashPasswordWithSalt(salt, password);
 
             await _context.Users.AddAsync(
                 new User
                 {
                     Username = username,
-                    Password = saltAndPassword.HashedPassword,
-                    Salt = saltAndPassword.Salt,
+                    Password = HashedPassword,
+                    Salt = Salt,
+                    HashingAlgorithm = "SHA256",
                     Level = _context.Levels.First(s => s.Name == level)
                 });
             await _context.SaveChangesAsync();

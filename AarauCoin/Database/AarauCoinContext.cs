@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 namespace AarauCoin.Database
 {
@@ -8,37 +9,23 @@ namespace AarauCoin.Database
         public DbSet<CoinAccount> CoinAccounts { get; set; }
         public DbSet<Level> Levels { get; set; }
 
-        public AarauCoinContext()
-        {
-        }
+        private readonly IConfiguration _configuration;
 
-        public AarauCoinContext(DbContextOptions<AarauCoinContext> options)
+        public AarauCoinContext(DbContextOptions<AarauCoinContext> options, IConfiguration configuration)
             : base(options)
         {
+            _configuration = configuration;
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            //// In-Memory
             optionsBuilder.UseInMemoryDatabase(databaseName: "AarauCoinDb");
-            //InsertLevels();
+
+            //// MariaDb code
+            //var connectionString = _configuration.GetConnectionString("AarauCoinDb") ?? string.Empty;
+            //var serverVersion = ServerVersion.AutoDetect(connectionString);
+            //optionsBuilder.UseMySql(connectionString, serverVersion);
         }
-
-        //// Add a method to seed data into the Levels table
-        //public void InsertLevels()
-        //{
-        //    if (!Levels.Any())
-        //    {
-        //        // Create and add Level entities
-        //        var levels = new Level[]
-        //        {
-        //            new Level { Id = 1, Name = "Admin"},
-        //            new Level { Id = 2, Name = "User"},
-        //            // Add more levels as needed
-        //        };
-
-        //        Levels.AddRange(levels);
-        //        SaveChanges();
-        //    }
-        //}
     }
 }

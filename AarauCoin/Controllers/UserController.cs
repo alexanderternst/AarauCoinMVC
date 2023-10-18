@@ -32,8 +32,11 @@ namespace AarauCoin.Controllers
         /// Methode für den Aufruf der Login Seite
         /// </summary>
         /// <returns></returns>
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            // this is a very, very temp. solution
+            await _service.InsertUser();
+
             _logger.LogInformation($"Login page says hello");
             return View();
         }
