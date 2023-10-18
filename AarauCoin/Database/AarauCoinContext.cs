@@ -8,6 +8,7 @@ namespace AarauCoin.Database
         public DbSet<User> Users { get; set; }
         public DbSet<CoinAccount> CoinAccounts { get; set; }
         public DbSet<Level> Levels { get; set; }
+        public DbSet<FailedLoginAttempt> FailedLoginAttempts { get; set; }
 
         private readonly IConfiguration _configuration;
 

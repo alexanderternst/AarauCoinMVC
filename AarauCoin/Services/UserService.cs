@@ -202,5 +202,25 @@ namespace AarauCoin.Services
 
             await _context.SaveChangesAsync();
         }
+
+        public bool LoginSucess(int userId)
+        {
+            var count = _context.FailedLoginAttempts.Count(x => x.UserId == userId && x.Time >= DateTimeOffset.UtcNow.AddMinutes(-30));
+            if (count > 4)
+                 return false;
+            return true;
+        }
+
+        public async Task AddFailedLoginAttempt(int userId, DateTimeOffset date)
+        {
+            await _context.FailedLoginAttempts.AddAsync(
+                new FailedLoginAttempt()
+                {
+                    UserId = userId,
+                    Time = date.UtcDateTime,
+                    Offset = date.Offset
+                });
+            await _context.SaveChangesAsync();
+        }
     }
 }

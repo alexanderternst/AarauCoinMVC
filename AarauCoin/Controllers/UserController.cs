@@ -70,9 +70,16 @@ namespace AarauCoin.Controllers
                         return View("Index", user);
                     }
 
-                    var loginSuccess = _service.VerifyPassword(dbUser.Salt, dbUser.Password, user.Password);
-
                     var username = dbUser.Username;
+
+                    if (!_service.LoginSucess(dbUser.Id))
+                    {
+                        user.Error = ("To many login attempts, account login blocked for 30 minutes", "danger");
+                        return View("Index", user);
+                    }
+
+                    var loginSuccess = _service.VerifyPassword(dbUser.Salt, dbUser.Password, user.Password);
+                    
                     if (loginSuccess)
                     {
                         await CreateLoginCookie(dbUser.Username, dbUser.Level.Name);
@@ -81,6 +88,10 @@ namespace AarauCoin.Controllers
                     }
                     else
                     {
+                        await _service.AddFailedLoginAttempt(dbUser.Id, DateTimeOffset.UtcNow);
+
+                        // add info that he failed to log in WITH UTC TIME
+                        // ... maybe add how many login attempts he has left, although this might be to processor heavy
                         _logger.LogInformation("User {username} failed to log in", username);
                         user.Error = ("Login failed, incorrect password or username", "info");
                         return View("Index", user);
