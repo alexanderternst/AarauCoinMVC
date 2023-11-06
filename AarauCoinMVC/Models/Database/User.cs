@@ -13,6 +13,11 @@ namespace AarauCoinMVC.Models.Database
 
         public string Password { get; set; }
 
-        public Level LevelId { get; set; }
+        // NEW
+        public string Salt { get; set; }
+
+        public Level? LevelId { get; set; }
+
+
     }
 }
