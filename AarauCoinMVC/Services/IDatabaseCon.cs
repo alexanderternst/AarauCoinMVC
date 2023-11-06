@@ -1,10 +1,13 @@
 ﻿using AarauCoinMVC.Models;
+using AarauCoinMVC.Models.Database;
 
 namespace AarauCoinMVC.Services
 {
     public interface IDatabaseCon
     {
-        Task<UserLoginDTO?> GetUser(string username);
+        Task<User?> Login(string username);
+        
+        bool VerifyPassword(string storedSalt, string storedHashedPassword, string attemptedPassword);
 
         Task<AccountViewModel?> GetUserInformation(string username);
 

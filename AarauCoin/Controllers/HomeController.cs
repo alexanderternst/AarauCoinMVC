@@ -1,9 +1,8 @@
-﻿using AarauCoinMVC.Models;
-using AarauCoinMVC.Services;
+﻿using AarauCoin.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
-namespace AarauCoinMVC.Controllers
+namespace AarauCoin.Controllers
 {
     public class HomeController : Controller
     {
@@ -13,6 +12,7 @@ namespace AarauCoinMVC.Controllers
         /// Konstruktor für den Home controller
         /// </summary>
         /// <param name="logger"></param>
+        /// <param name="context"></param>
         public HomeController(ILogger<HomeController> logger)
         {
             _logger = logger;

@@ -1,6 +1,9 @@
 ﻿using AarauCoinMVC.Models;
 using AarauCoinMVC.Models.Database;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace AarauCoinMVC.Services
 {
@@ -26,11 +29,11 @@ namespace AarauCoinMVC.Services
         /// <summary>
         /// Methode für das Einfügen von Daten in die In-Memory Datenbank
         /// </summary>
-        private void InsertUser()
+        private async void InsertUser()
         {
-            List<User> user = _context.Users.ToList();
-            List<Level> lev = _context.Levels.ToList();
-            if (user.Count == 0 && lev.Count == 0)
+            IEnumerable<User> user = _context.Users;
+            IEnumerable<Level> lev = _context.Levels;
+            if (!user.Any() && !lev.Any())
             {
                 _context.Levels.Add(new Level
                 {
@@ -46,33 +49,21 @@ namespace AarauCoinMVC.Services
                 });
                 _context.SaveChanges();
 
-                _context.Users.Add(new User
-                {
-                    Username = "Hans",
-                    Password = "ibz1234",
-                    LevelId = _context.Levels.FirstOrDefault(s => s.LevelName == "User")
-                });
-                _context.SaveChanges();
+                await CreateUser("Hans", "ibz1234", "User", 1000);
 
-                _context.Users.Add(new User
+                await CreateUser("Alex", "ibz1234", "Admin", 1000);
+
+                _context.Coins.Add(new Coin
                 {
-                    Username = "Alex",
-                    Password = "ibz1234",
-                    LevelId = _context.Levels.FirstOrDefault(s => s.LevelName == "Admin")
+                    Coins = 1000,
+                    UserId = _context.Users.First(m => m.Username == "Hans")
                 });
                 _context.SaveChanges();
 
                 _context.Coins.Add(new Coin
                 {
                     Coins = 1000,
-                    UserId = _context.Users.FirstOrDefault(m => m.Username == "Hans")
-                });
-                _context.SaveChanges();
-
-                _context.Coins.Add(new Coin
-                {
-                    Coins = 1000,
-                    UserId = _context.Users.FirstOrDefault(m => m.Username == "Alex")
+                    UserId = _context.Users.First(m => m.Username == "Alex")
                 });
                 _context.SaveChanges();
             }
@@ -87,18 +78,16 @@ namespace AarauCoinMVC.Services
         /// </summary>
         /// <param name="username"></param>
         /// <returns></returns>
-        public async Task<UserLoginDTO?> GetUser(string username)
+        public async Task<User?> Login(string username)
         {
-            UserLoginDTO? user = await _context.Users
-                .Select(e => new UserLoginDTO
-                {
-                    Id = e.UserId,
-                    Username = e.Username,
-                    Password = e.Password,
-                    Level = e.LevelId.LevelName,
-                    Coins = _context.Coins.Where(s => s.UserId.Username == username).FirstOrDefault()
-                }).FirstOrDefaultAsync(s => s.Username.ToLower() == username.ToLower());
-            return user;
+            return await _context.Users.Include(x => x.LevelId).FirstOrDefaultAsync(s => s.Username.ToLower() == username.ToLower());
+        }
+
+        public bool VerifyPassword(string storedSalt, string storedHashedPassword, string attemptedPassword)
+        {
+            byte[] salt = Convert.FromBase64String(storedSalt);
+            var hash = HashPasswordWithSalt(salt, attemptedPassword);
+            return hash.HashedPassword == storedHashedPassword; // store type of hashing in db
         }
 
         /// <summary>
@@ -160,11 +149,21 @@ namespace AarauCoinMVC.Services
             if (user != null)
                 throw new UserException($"User with username {username} already exists");
 
+            byte[] salt = new byte[16];
+
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(salt);
+            }
+
+            var saltAndPassword = HashPasswordWithSalt(salt, password);
+
             await _context.Users.AddAsync(
                 new User
                 {
                     Username = username,
-                    Password = password,
+                    Password = saltAndPassword.HashedPassword,
+                    Salt = saltAndPassword.Salt,
                     LevelId = _context.Levels.First(s => s.LevelName == level)
                 });
             await _context.SaveChangesAsync();
@@ -291,5 +290,16 @@ namespace AarauCoinMVC.Services
         }
 
         #endregion Log
+
+
+        private static (string Salt, string HashedPassword) HashPasswordWithSalt(byte[] salt, string password)
+        {
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                byte[] saltedPassword = Encoding.UTF8.GetBytes(password).Concat(salt).ToArray();
+                byte[] hashBytes = sha256.ComputeHash(saltedPassword);
+                return (Convert.ToBase64String(salt), Convert.ToBase64String(hashBytes));
+            }
+        }
     }
 }
