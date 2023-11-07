@@ -62,7 +62,8 @@ namespace AarauCoin.Controllers
                     var filteredLogs = logs
                         .Where(
                             s => string.IsNullOrWhiteSpace(searchContent) ||
-                            s.LogMessage.ToLower().Contains(searchContent.ToLower().Trim())
+                            s.LogMessage.ToLower().Contains(searchContent.ToLower().Trim()) ||
+                            s.TypeOfLog.ToLower().Contains(searchContent.ToLower().Trim())
                                 );
 
                     if (picker == "Newest")
